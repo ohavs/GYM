@@ -70,8 +70,8 @@ export default function CoachPage() {
         title="המתאמנים שלי"
         subtitle={
           needsAttention
-            ? `${needsAttention} מתאמנים מתחת ליעד ההתמדה`
-            : 'כולם עומדים ביעד ההתמדה'
+            ? `${needsAttention} מתאמנים לא עומדים בקצב`
+            : 'כולם עומדים בקצב'
         }
         action={
           <IconButton label="הוספת מתאמן" tone="ink" onClick={() => setAddOpen(true)} className="mt-1">

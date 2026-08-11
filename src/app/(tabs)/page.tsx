@@ -250,7 +250,7 @@ export default function HomePage() {
             </div>
             <div className="mt-6">
               <CountUp value={streak} className="text-[34px] font-semibold leading-none" />
-              <p className="mt-1 text-[12.5px] text-muted">רצף שבועות</p>
+              <p className="mt-1 text-[12.5px] text-muted">שבועות ברצף</p>
             </div>
           </div>
 
@@ -262,7 +262,7 @@ export default function HomePage() {
               <p className="num text-[30px] font-semibold leading-none">
                 {week.volume ? volumeLabel(week.volume) : '0'}
               </p>
-              <p className="mt-1 text-[12.5px] text-white/50">נפח השבוע</p>
+              <p className="mt-1 text-[12.5px] text-white/50">הרמתם השבוע</p>
             </div>
           </div>
         </div>

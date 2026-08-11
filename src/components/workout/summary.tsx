@@ -83,7 +83,7 @@ export function WorkoutSummary({ log, onClose }: { log: WorkoutLog; onClose: () 
             tint="bg-butter"
             icon={<Barbell size={17} weight="bold" />}
             value={volumeLabel(log.volume)}
-            label="נפח"
+            label="הרמתם"
           />
         </motion.dl>
 

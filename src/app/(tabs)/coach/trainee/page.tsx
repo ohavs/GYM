@@ -145,13 +145,13 @@ function TraineeDetail() {
               <span className="digits text-[26px] font-semibold leading-none">
                 {trainee.done}/{trainee.planned}
               </span>
-              <span className="text-[12px] text-white/45">התמדה</span>
+              <span className="text-[12px] text-white/45">אימונים שבוצעו</span>
             </div>
             <div className="flex flex-col gap-1">
               <span className="digits text-[26px] font-semibold leading-none">
                 {Math.round(value * 100)}%
               </span>
-              <span className="text-[12px] text-white/45">עמידה ביעד</span>
+              <span className="text-[12px] text-white/45">מהתוכנית</span>
             </div>
             <div className="flex flex-col gap-1">
               <span className="num text-[26px] font-semibold leading-none">{trainee.days}</span>

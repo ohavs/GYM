@@ -61,7 +61,7 @@ export default function ProgressPage() {
         <EmptyState
           icon={<ChartLineUp size={30} />}
           title="עוד לא נרשמו אימונים"
-          body="אחרי האימון הראשון תראו כאן נפח שבועי, שיאים אישיים והיסטוריה מלאה."
+          body="אחרי האימון הראשון תראו כאן כמה הרמתם בכל שבוע, שיאים אישיים והיסטוריה מלאה."
           tint="mint"
         />
       </Screen>
@@ -85,7 +85,7 @@ export default function ProgressPage() {
                 />
                 <span className="text-[15px] text-white/50">טון</span>
               </p>
-              <p className="mt-2 text-[13px] text-white/50">נפח מצטבר</p>
+              <p className="mt-2 text-[13px] text-white/50">סך הכל הרמתם</p>
             </div>
             <div className="w-[128px]">
               <SegmentedDark value={range} onChange={setRange} />
@@ -205,7 +205,7 @@ function VolumeChart({ weeks, peak }: { weeks: { key: number; volume: number }[]
         preserveAspectRatio="none"
         className="h-32 w-full overflow-visible"
         role="img"
-        aria-label="נפח אימונים לפי שבוע"
+        aria-label="כמה משקל הרמתם בכל שבוע"
       >
         {[0.3, 0.65, 1].map((f) => (
           <line

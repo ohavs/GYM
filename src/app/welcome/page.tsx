@@ -26,7 +26,7 @@ import type { BodyPartKey, Goal, Level, Place } from '@/lib/types';
 import { haptic } from '@/lib/haptics';
 
 const GOALS: { value: Goal; title: string; description: string; icon: React.ReactNode; tint: 'peach' | 'mint' | 'lilac' | 'butter' }[] = [
-  { value: 'muscle', title: GOAL_LABEL.muscle, description: 'נפח בינוני, 8 עד 12 חזרות', icon: <Barbell size={21} weight="bold" />, tint: 'peach' },
+  { value: 'muscle', title: GOAL_LABEL.muscle, description: 'משקל בינוני, 8 עד 12 חזרות', icon: <Barbell size={21} weight="bold" />, tint: 'peach' },
   { value: 'strength', title: GOAL_LABEL.strength, description: 'משקלים כבדים, מעט חזרות', icon: <Medal size={21} weight="bold" />, tint: 'lilac' },
   { value: 'fat', title: GOAL_LABEL.fat, description: 'חזרות גבוהות, מנוחות קצרות', icon: <Fire size={21} weight="bold" />, tint: 'butter' },
   { value: 'health', title: GOAL_LABEL.health, description: 'אימון מאוזן ונוח לשגרה', icon: <Heart size={21} weight="bold" />, tint: 'mint' },
@@ -223,9 +223,9 @@ export default function WelcomePage() {
                     (level === 1
                       ? 'שלושה אימוני גוף מלא. החלוקה הכי יעילה למתחילים.'
                       : 'דחיפה, משיכה ורגליים. חלוקה קלאסית שמכסה הכל.')}
-                  {days === 4 && 'עליון ותחתון פעמיים בשבוע. איזון טוב בין נפח להתאוששות.'}
+                  {days === 4 && 'עליון ותחתון פעמיים בשבוע. איזון טוב בין עבודה למנוחה.'}
                   {days === 5 && 'חמישה אימונים משולבים. דורש שגרה יציבה.'}
-                  {days === 6 && 'דחיפה משיכה רגליים פעמיים. נפח גבוה, שימו לב לשינה.'}
+                  {days === 6 && 'דחיפה משיכה רגליים פעמיים. הרבה עבודה, שימו לב לשינה.'}
                 </p>
               </StepShell>
             )}
@@ -253,7 +253,7 @@ export default function WelcomePage() {
             {step === 5 && (
               <StepShell
                 title="יש משהו שחשוב לכם במיוחד?"
-                body="בחירה אופציונלית. הקבוצות שתסמנו יקבלו קצת יותר נפח בשבוע."
+                body="בחירה אופציונלית. הקבוצות שתסמנו יקבלו קצת יותר עבודה בשבוע."
               >
                 <div className="grid grid-cols-2 gap-3">
                   {FOCUS.map((option) => {
