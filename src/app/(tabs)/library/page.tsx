@@ -3,17 +3,38 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion } from 'motion/react';
-import { BookmarkSimple, FunnelSimple, MagnifyingGlass, X } from '@phosphor-icons/react/dist/ssr';
+import {
+  BookmarkSimple,
+  Cards,
+  FunnelSimple,
+  Lightning,
+  MagnifyingGlass,
+  Rows,
+  Sparkle,
+  SquaresFour,
+  Sun,
+  X,
+} from '@phosphor-icons/react/dist/ssr';
 import { Rise, Screen } from '@/components/layout/screen';
 import { Button, IconButton } from '@/components/ui/button';
-import { Chip, EmptyState, SearchField, useDebounced } from '@/components/ui/controls';
+import {
+  Chip,
+  EmptyState,
+  SearchField,
+  TINT_BG,
+  tintFor,
+  useDebounced,
+  type Tint,
+} from '@/components/ui/controls';
 import { Sheet } from '@/components/ui/sheet';
-import { ExerciseCard } from '@/components/exercise/exercise-card';
+import { ExerciseCard, ExerciseRow } from '@/components/exercise/exercise-card';
+import { ExerciseMedia } from '@/components/exercise/exercise-media';
 import { ExerciseSheet } from '@/components/exercise/exercise-sheet';
 import { useReadyCatalog } from '@/components/app-providers';
 import { emptyFilters, filterCount, searchExercises, type Filters } from '@/lib/data';
-import { useStore } from '@/lib/store';
+import { useStore, type LibraryView } from '@/lib/store';
 import { LEVEL_LABEL } from '@/lib/program';
+import { haptic } from '@/lib/haptics';
 import type { Exercise } from '@/lib/types';
 
 const PAGE = 24;
@@ -30,6 +51,8 @@ function Library() {
   const params = useSearchParams();
   const { exercises, meta } = useReadyCatalog();
   const saved = useStore((s) => s.saved);
+  const view = useStore((s) => s.libraryView);
+  const setView = useStore((s) => s.setLibraryView);
 
   const [filters, setFilters] = useState<Filters>(emptyFilters);
   const [onlySaved, setOnlySaved] = useState(params.get('saved') === '1');
@@ -66,6 +89,8 @@ function Library() {
     observer.observe(node);
     return () => observer.disconnect();
   }, [results.length]);
+
+  const stamps = useFilterStamps(exercises);
 
   const active = filterCount(filters);
   // Quick chips lead with the areas people actually browse, not alphabetical order.
@@ -113,7 +138,9 @@ function Library() {
 
         <div className="no-scrollbar -mx-5 mt-3 flex gap-2.5 overflow-x-auto px-5">
           <Chip active={onlySaved} onClick={() => setOnlySaved((v) => !v)} count={saved.length}>
-            <BookmarkSimple size={14} weight={onlySaved ? 'fill' : 'bold'} />
+            <ChipGlyph tint="sky">
+              <BookmarkSimple size={16} weight={onlySaved ? 'fill' : 'bold'} />
+            </ChipGlyph>
             שמורים
           </Chip>
           {topBodyParts.map((bp) => (
@@ -130,16 +157,20 @@ function Library() {
                 }))
               }
             >
+              <ChipArt exercise={stamps.byBodyPart.get(bp.key)} />
               {bp.he}
             </Chip>
           ))}
         </div>
       </div>
 
-      <p className="px-1 pb-4 text-[13px] text-faint">
-        <span className="font-medium text-muted">{results.length.toLocaleString('he-IL')}</span>{' '}
-        תוצאות
-      </p>
+      <div className="flex items-center justify-between gap-3 px-1 pb-4">
+        <p className="text-[13px] text-faint">
+          <span className="font-medium text-muted">{results.length.toLocaleString('he-IL')}</span>{' '}
+          תוצאות
+        </p>
+        <ViewSwitcher value={view} onChange={setView} />
+      </div>
 
       {results.length === 0 ? (
         <EmptyState
@@ -160,16 +191,50 @@ function Library() {
         />
       ) : (
         <>
-          <div className="grid grid-cols-2 gap-3.5">
-            {results.slice(0, visible).map((exercise, i) => (
-              <ExerciseCard
-                key={exercise.id}
-                exercise={exercise}
-                index={i % PAGE}
-                onOpen={setOpen}
-              />
-            ))}
-          </div>
+          {view === 'grid' && (
+            <div className="grid grid-cols-2 gap-3.5">
+              {results.slice(0, visible).map((exercise, i) => (
+                <ExerciseCard
+                  key={exercise.id}
+                  exercise={exercise}
+                  index={i % PAGE}
+                  onOpen={setOpen}
+                />
+              ))}
+            </div>
+          )}
+
+          {view === 'large' && (
+            <div className="flex flex-col gap-3.5">
+              {results.slice(0, visible).map((exercise, i) => (
+                <ExerciseCard
+                  key={exercise.id}
+                  exercise={exercise}
+                  index={i % PAGE}
+                  onOpen={setOpen}
+                  wide
+                />
+              ))}
+            </div>
+          )}
+
+          {view === 'list' && (
+            <ul className="flex flex-col gap-2">
+              {results.slice(0, visible).map((exercise) => (
+                <li key={exercise.id}>
+                  <ExerciseRow
+                    dense
+                    exercise={exercise}
+                    detail={`${meta.targets[exercise.tg] ?? exercise.tg} · ${
+                      meta.equipment.find((e) => e.key === exercise.eq)?.chip ?? exercise.eq
+                    }`}
+                    onClick={() => setOpen(exercise)}
+                    trailing={<SaveToggle id={exercise.id} />}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
           <div ref={sentinel} className="h-10" />
           {visible < results.length && (
             <p className="pb-4 text-center text-[13px] text-faint">טוענים עוד תרגילים...</p>
@@ -184,12 +249,137 @@ function Library() {
         onChange={setFilters}
         meta={meta}
         resultCount={results.length}
+        stamps={stamps}
       />
 
       <ExerciseSheet exercise={open} onClose={() => setOpen(null)} />
     </Screen>
   );
 }
+
+const VIEWS: { value: LibraryView; label: string; Icon: typeof Rows }[] = [
+  { value: 'grid', label: 'רשת', Icon: SquaresFour },
+  { value: 'list', label: 'רשימה', Icon: Rows },
+  { value: 'large', label: 'גדול', Icon: Cards },
+];
+
+function ViewSwitcher({
+  value,
+  onChange,
+}: {
+  value: LibraryView;
+  onChange: (view: LibraryView) => void;
+}) {
+  return (
+    <div className="flex items-center gap-1 rounded-full bg-card p-1 shadow-[var(--shadow-soft)]">
+      {VIEWS.map(({ value: option, label, Icon }) => {
+        const active = option === value;
+        return (
+          <button
+            key={option}
+            type="button"
+            aria-label={`תצוגת ${label}`}
+            aria-pressed={active}
+            onClick={() => {
+              haptic('select');
+              onChange(option);
+            }}
+            className="relative grid size-9 place-items-center rounded-full"
+          >
+            {active && (
+              <motion.span
+                layoutId="library-view"
+                transition={{ type: 'spring', stiffness: 480, damping: 36 }}
+                className="absolute inset-0 rounded-full bg-ink"
+              />
+            )}
+            {/* Bold in both states: the filled weights collapse these shapes
+                into solid slabs, and the layout they stand for disappears. */}
+            <Icon
+              size={17}
+              weight="bold"
+              className={`relative z-10 ${active ? 'text-white' : 'text-faint'}`}
+            />
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function SaveToggle({ id }: { id: string }) {
+  const saved = useStore((s) => s.saved.includes(id));
+  const toggleSaved = useStore((s) => s.toggleSaved);
+  return (
+    <button
+      type="button"
+      aria-label={saved ? 'הסרה מהשמורים' : 'שמירה'}
+      aria-pressed={saved}
+      onClick={(e) => {
+        e.stopPropagation();
+        haptic('select');
+        toggleSaved(id);
+      }}
+      className={`me-1 grid size-9 shrink-0 place-items-center rounded-full transition-colors ${
+        saved ? 'bg-ink text-white' : 'bg-canvas text-faint'
+      }`}
+    >
+      <BookmarkSimple size={15} weight={saved ? 'fill' : 'regular'} />
+    </button>
+  );
+}
+
+/**
+ * Every filter is stamped with the most mainstream exercise it selects, so a
+ * row of categories reads as pictures of movements rather than words alone.
+ */
+function useFilterStamps(exercises: Exercise[]) {
+  return useMemo(() => {
+    const byBodyPart = new Map<string, Exercise>();
+    const byEquipment = new Map<string, Exercise>();
+    for (const ex of exercises) {
+      const bp = byBodyPart.get(ex.bp);
+      if (!bp || ex.rank > bp.rank) byBodyPart.set(ex.bp, ex);
+      const eq = byEquipment.get(ex.eq);
+      if (!eq || ex.rank > eq.rank) byEquipment.set(ex.eq, ex);
+    }
+    return { byBodyPart, byEquipment };
+  }, [exercises]);
+}
+
+/**
+ * Artwork stamp for one filter. Sized to nearly fill the chip's height, since
+ * any smaller and the figure turns to mush. A rounded square rather than a
+ * circle: the artwork is blended onto its tint, and a blended layer paints
+ * straight through a round clip, so limbs and barbells escape the disc.
+ */
+function ChipArt({ exercise }: { exercise?: Exercise }) {
+  if (!exercise) return null;
+  return (
+    <ExerciseMedia
+      exercise={exercise}
+      tint={tintFor(exercise.id)}
+      className="-ms-3 size-9 shrink-0 rounded-[var(--radius-xs)] p-0.5"
+    />
+  );
+}
+
+/** Same medallion shape as ChipArt, for filters with no artwork to show. */
+function ChipGlyph({ tint, children }: { tint: Tint; children: React.ReactNode }) {
+  return (
+    <span
+      className={`-ms-3 grid size-9 shrink-0 place-items-center rounded-[var(--radius-xs)] text-ink ${TINT_BG[tint]}`}
+    >
+      {children}
+    </span>
+  );
+}
+
+const LEVELS = [
+  { value: 1, Icon: Sun, tint: 'mint' },
+  { value: 2, Icon: Lightning, tint: 'butter' },
+  { value: 3, Icon: Sparkle, tint: 'blush' },
+] as const;
 
 function FilterSheet({
   open,
@@ -198,6 +388,7 @@ function FilterSheet({
   onChange,
   meta,
   resultCount,
+  stamps,
 }: {
   open: boolean;
   onClose: () => void;
@@ -205,6 +396,7 @@ function FilterSheet({
   onChange: (filters: Filters) => void;
   meta: ReturnType<typeof useReadyCatalog>['meta'];
   resultCount: number;
+  stamps: ReturnType<typeof useFilterStamps>;
 }) {
   const toggle = (key: 'bodyParts' | 'equipment', value: string) =>
     onChange({
@@ -245,6 +437,7 @@ function FilterSheet({
               count={meta.counts.bodyPart[bp.key]}
               onClick={() => toggle('bodyParts', bp.key)}
             >
+              <ChipArt exercise={stamps.byBodyPart.get(bp.key)} />
               {bp.he}
             </Chip>
           ))}
@@ -261,13 +454,14 @@ function FilterSheet({
                 count={meta.counts.equipment[eq.key]}
                 onClick={() => toggle('equipment', eq.key)}
               >
+                <ChipArt exercise={stamps.byEquipment.get(eq.key)} />
                 {eq.chip}
               </Chip>
             ))}
         </FilterGroup>
 
         <FilterGroup title="רמת קושי">
-          {([1, 2, 3] as const).map((level) => (
+          {LEVELS.map(({ value: level, Icon, tint }) => (
             <Chip
               key={level}
               active={filters.levels.includes(level)}
@@ -280,6 +474,9 @@ function FilterSheet({
                 })
               }
             >
+              <ChipGlyph tint={tint}>
+                <Icon size={17} weight="bold" />
+              </ChipGlyph>
               {LEVEL_LABEL[level]}
             </Chip>
           ))}

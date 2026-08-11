@@ -13,6 +13,8 @@ import type {
   WorkoutLog,
 } from './types';
 
+export type LibraryView = 'grid' | 'list' | 'large';
+
 const DEFAULT_PROFILE: Profile = {
   name: '',
   goal: 'muscle',
@@ -32,9 +34,12 @@ type State = {
   trainees: Trainee[];
   /** Exercise ids the user starred, shown first in the library. */
   saved: string[];
+  /** How the catalogue is laid out. Remembered, since it is a lasting preference. */
+  libraryView: LibraryView;
   lastWeights: Record<string, number>;
 
   setProfile: (patch: Partial<Profile>) => void;
+  setLibraryView: (view: LibraryView) => void;
   setProgram: (program: Program | null) => void;
   toggleSaved: (id: string) => void;
 
@@ -71,9 +76,11 @@ export const useStore = create<State>()(
       active: null,
       trainees: [],
       saved: [],
+      libraryView: 'grid',
       lastWeights: {},
 
       setProfile: (patch) => set((s) => ({ profile: { ...s.profile, ...patch } })),
+      setLibraryView: (libraryView) => set({ libraryView }),
       setProgram: (program) => set({ program }),
 
       toggleSaved: (id) =>
@@ -274,6 +281,7 @@ export const useStore = create<State>()(
           active: null,
           trainees: [],
           saved: [],
+          libraryView: 'grid',
           lastWeights: {},
         }),
     }),
@@ -287,6 +295,7 @@ export const useStore = create<State>()(
         active: s.active,
         trainees: s.trainees,
         saved: s.saved,
+        libraryView: s.libraryView,
         lastWeights: s.lastWeights,
       }),
     },

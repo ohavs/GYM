@@ -418,7 +418,7 @@ export function Stepper({
   return (
     <div className={`flex items-center ${compact ? 'gap-1' : 'gap-1.5'}`}>
       <StepButton label="הפחתה" compact={compact} big={big} on={on} onPress={() => bump(-1)} onHold={() => bump(-1)}>
-        <Minus size={compact ? 13 : 16} weight="bold" />
+        <Minus size={compact ? 13 : big ? 18 : 16} weight="bold" />
       </StepButton>
       <input
         type="text"
@@ -437,7 +437,7 @@ export function Stepper({
         }`}
       />
       <StepButton label="הוספה" compact={compact} big={big} on={on} onPress={() => bump(1)} onHold={() => bump(1)}>
-        <Plus size={compact ? 13 : 16} weight="bold" />
+        <Plus size={compact ? 13 : big ? 18 : 16} weight="bold" />
       </StepButton>
     </div>
   );
@@ -489,7 +489,7 @@ function StepButton({
       onPointerCancel={clear}
       className={`grid shrink-0 place-items-center rounded-full text-ink-soft ${
         on === 'canvas' ? 'bg-card shadow-[var(--shadow-soft)]' : 'bg-canvas'
-      } ${compact ? 'size-9' : 'size-11'}`}
+      } ${compact ? 'size-9' : big ? 'size-12' : 'size-11'}`}
     >
       {children}
     </motion.button>

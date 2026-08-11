@@ -17,10 +17,13 @@ export function ExerciseCard({
   exercise,
   onOpen,
   index = 0,
+  wide = false,
 }: {
   exercise: Exercise;
   onOpen: (exercise: Exercise) => void;
   index?: number;
+  /** Full-width variant: one exercise per row, artwork given more height. */
+  wide?: boolean;
 }) {
   const { meta } = useReadyCatalog();
   const saved = useStore((s) => s.saved.includes(exercise.id));
@@ -50,13 +53,19 @@ export function ExerciseCard({
         <ExerciseMedia
           exercise={exercise}
           tint={tintFor(exercise.id)}
-          className="aspect-[4/3.4] w-full"
+          className={`w-full ${wide ? 'aspect-[3/1.9]' : 'aspect-[4/3.4]'}`}
         />
-        <span className="flex min-h-[84px] flex-col gap-1.5 p-4">
-          <span className="line-clamp-2 text-[15px] font-medium leading-snug">
+        <span
+          className={`flex flex-col gap-1.5 p-4 ${wide ? '' : 'min-h-[84px]'}`}
+        >
+          <span
+            className={`line-clamp-2 font-medium leading-snug ${
+              wide ? 'text-[19px]' : 'text-[15px]'
+            }`}
+          >
             {exercise.he}
           </span>
-          <span className="mt-auto text-[12px] text-faint">
+          <span className={`mt-auto text-faint ${wide ? 'text-[13px]' : 'text-[12px]'}`}>
             {target} · {equipment}
           </span>
         </span>
@@ -83,6 +92,9 @@ export function ExerciseCard({
 /**
  * Chunky list row. Big square artwork tile on the leading edge, the value or
  * control on the trailing edge, which is the mockup's workout-list rhythm.
+ *
+ * `dense` trims it for the catalogue's list layout, where the point is fitting
+ * many exercises on screen at once rather than showing off one.
  */
 export function ExerciseRow({
   exercise,
@@ -90,12 +102,14 @@ export function ExerciseRow({
   onClick,
   trailing,
   tone = 'card',
+  dense = false,
 }: {
   exercise: Exercise;
   detail?: string;
   onClick?: () => void;
   trailing?: React.ReactNode;
   tone?: 'card' | 'bare';
+  dense?: boolean;
 }) {
   const Wrapper = onClick ? motion.button : motion.div;
   return (
@@ -104,18 +118,32 @@ export function ExerciseRow({
       whileTap={onClick ? { scale: 0.985 } : undefined}
       transition={{ type: 'spring', stiffness: 460, damping: 30 }}
       onClick={onClick}
-      className={`flex w-full items-center gap-4 rounded-[var(--radius-md)] p-3 text-start ${
-        tone === 'card' ? 'bg-card shadow-[var(--shadow-soft)]' : ''
-      }`}
+      className={`flex w-full items-center text-start ${
+        dense ? 'gap-3 rounded-[var(--radius-sm)] p-2' : 'gap-4 rounded-[var(--radius-md)] p-3'
+      } ${tone === 'card' ? 'bg-card shadow-[var(--shadow-soft)]' : ''}`}
     >
       <ExerciseMedia
         exercise={exercise}
         tint={tintFor(exercise.id)}
-        className="size-16 shrink-0 rounded-[var(--radius-sm)]"
+        className={`shrink-0 rounded-[var(--radius-xs)] ${dense ? 'size-13' : 'size-16'}`}
       />
       <span className="min-w-0 flex-1">
-        <span className="line-clamp-2 text-[15px] font-medium leading-snug">{exercise.he}</span>
-        {detail && <span className="mt-1 block truncate text-[12.5px] text-muted">{detail}</span>}
+        <span
+          className={`font-medium leading-snug ${
+            dense ? 'line-clamp-1 text-[14.5px]' : 'line-clamp-2 text-[15px]'
+          }`}
+        >
+          {exercise.he}
+        </span>
+        {detail && (
+          <span
+            className={`block truncate text-muted ${
+              dense ? 'mt-0.5 text-[12px]' : 'mt-1 text-[12.5px]'
+            }`}
+          >
+            {detail}
+          </span>
+        )}
       </span>
       {trailing}
     </Wrapper>

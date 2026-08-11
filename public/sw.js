@@ -17,6 +17,13 @@
  */
 
 const VERSION = 'maslul-v1';
+
+/**
+ * This build's fingerprinted assets, filled in by scripts/stamp-sw.mjs. Empty
+ * in the source: there is nothing to list until the build has run.
+ */
+const BUILD_ASSETS = [];
+
 const SHELL = `${VERSION}-shell`;
 const ASSETS = `${VERSION}-assets`;
 const DATA = `${VERSION}-data`;
@@ -37,13 +44,15 @@ const ROUTES = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     (async () => {
-      const cache = await caches.open(SHELL);
+      const shell = await caches.open(SHELL);
+      const assets = await caches.open(ASSETS);
       // Individually, so one 404 cannot fail the whole install.
-      await Promise.all(
-        [...ROUTES, '/data/exercises.json', '/data/meta.json', '/manifest.webmanifest'].map((url) =>
-          cache.add(url).catch(() => {}),
+      await Promise.all([
+        ...[...ROUTES, '/data/exercises.json', '/data/meta.json', '/manifest.webmanifest'].map(
+          (url) => shell.add(url).catch(() => {}),
         ),
-      );
+        ...BUILD_ASSETS.map((url) => assets.add(url).catch(() => {})),
+      ]);
       await self.skipWaiting();
     })(),
   );
