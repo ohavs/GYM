@@ -42,6 +42,7 @@ export default function ProgramPage() {
   const [openDay, setOpenDay] = useState<string | null>(program?.days[0]?.id ?? null);
   const [detail, setDetail] = useState<Exercise | null>(null);
   const [rebuildOpen, setRebuildOpen] = useState(false);
+  const [splitOpen, setSplitOpen] = useState(true);
 
   if (!program) {
     return (
@@ -111,13 +112,38 @@ export default function ProgramPage() {
       {/* "Weekly volume by area" meant nothing to anyone who is not a coach.
           Same data, said plainly: which areas the week works, and how hard. */}
       <Rise>
-        <section className="mb-7 rounded-[var(--radius-lg)] bg-card p-6 shadow-[var(--shadow-soft)]">
-          <h2 className="text-[18px]">על מה עובדים השבוע</h2>
-          <p className="mt-1.5 text-[13.5px] leading-relaxed text-muted">
-            כמה סטים כל אזור בגוף מקבל לאורך {program.days.length} האימונים. ככל שהפס ארוך
-            יותר, האזור מקבל יותר עבודה.
-          </p>
-          <ul className="mt-5 flex flex-col gap-4">
+        <section className="mb-7 overflow-hidden rounded-[var(--radius-lg)] bg-card shadow-[var(--shadow-soft)]">
+          <button
+            type="button"
+            onClick={() => {
+              haptic('select');
+              setSplitOpen((v) => !v);
+            }}
+            aria-expanded={splitOpen}
+            className="flex w-full items-start gap-3 p-6 text-start"
+          >
+            <span className="min-w-0 flex-1">
+              <span className="block text-[18px] font-semibold">על מה עובדים השבוע</span>
+              <span className="mt-1.5 block text-[13.5px] leading-relaxed text-muted">
+                כמה סטים כל אזור בגוף מקבל לאורך {program.days.length} האימונים.
+              </span>
+            </span>
+            <motion.span animate={{ rotate: splitOpen ? 180 : 0 }} className="mt-1 text-faint">
+              <CaretDown size={19} weight="bold" />
+            </motion.span>
+          </button>
+
+          <AnimatePresence initial={false}>
+            {splitOpen && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
+                className="overflow-hidden"
+              >
+                <div className="px-6 pb-6">
+          <ul className="flex flex-col gap-4">
             {split.map((row, i) => (
               <li key={row.label}>
                 <div className="mb-1.5 flex items-baseline justify-between gap-3">
@@ -145,6 +171,10 @@ export default function ProgramPage() {
             </span>
             .
           </p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </section>
       </Rise>
 
