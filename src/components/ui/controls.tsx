@@ -22,6 +22,16 @@ export const TINT_BG: Record<Tint, string> = {
   blush: 'bg-blush',
 };
 
+/** Selected state for a tinted surface: same hue, more of it. */
+export const TINT_DEEP: Record<Tint, string> = {
+  peach: 'bg-peach-deep',
+  mint: 'bg-mint-deep',
+  lilac: 'bg-lilac-deep',
+  butter: 'bg-butter-deep',
+  sky: 'bg-sky-deep',
+  blush: 'bg-blush-deep',
+};
+
 /** Stable tint per key, so a given exercise always sits on the same colour. */
 export function tintFor(key: string, offset = 0): Tint {
   let hash = 0;

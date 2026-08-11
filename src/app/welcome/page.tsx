@@ -6,6 +6,7 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import {
   Barbell,
   CaretLeft,
+  Check,
   Fire,
   Heart,
   House,
@@ -16,7 +17,8 @@ import {
   Sun,
 } from '@phosphor-icons/react/dist/ssr';
 import { Button, IconButton } from '@/components/ui/button';
-import { Field, OptionCard, Slider } from '@/components/ui/controls';
+import { Field, OptionCard, Slider, TINT_BG, TINT_DEEP, type Tint } from '@/components/ui/controls';
+import { ExerciseMedia } from '@/components/exercise/exercise-media';
 import { useCatalog } from '@/components/app-providers';
 import { useHydrated, useStore } from '@/lib/store';
 import { buildProgram, GOAL_LABEL } from '@/lib/program';
@@ -42,13 +44,13 @@ const PLACES: { value: Place; title: string; description: string; icon: React.Re
   { value: 'minimal', title: 'מינימלי', description: 'משקל גוף וזוג משקולות', icon: <Barbell size={21} weight="bold" /> },
 ];
 
-const FOCUS: { value: BodyPartKey; label: string; tint: string }[] = [
-  { value: 'chest', label: 'חזה', tint: 'bg-peach' },
-  { value: 'back', label: 'גב', tint: 'bg-mint' },
-  { value: 'shoulders', label: 'כתפיים', tint: 'bg-lilac' },
-  { value: 'upper arms', label: 'זרועות', tint: 'bg-butter' },
-  { value: 'upper legs', label: 'רגליים', tint: 'bg-sky' },
-  { value: 'waist', label: 'בטן וליבה', tint: 'bg-blush' },
+const FOCUS: { value: BodyPartKey; label: string; tint: Tint }[] = [
+  { value: 'chest', label: 'חזה', tint: 'peach' },
+  { value: 'back', label: 'גב', tint: 'mint' },
+  { value: 'shoulders', label: 'כתפיים', tint: 'lilac' },
+  { value: 'upper arms', label: 'זרועות', tint: 'butter' },
+  { value: 'upper legs', label: 'רגליים', tint: 'sky' },
+  { value: 'waist', label: 'בטן וליבה', tint: 'blush' },
 ];
 
 const STEPS = ['שם', 'מטרה', 'ניסיון', 'תדירות', 'ציוד', 'דגשים'] as const;
@@ -72,6 +74,17 @@ export default function WelcomePage() {
   const [building, setBuilding] = useState(false);
 
   const canContinue = step !== 0 || name.trim().length >= 2;
+
+  const focusArt = useMemo(() => {
+    const map = new Map<string, (typeof exercises)[number]>();
+    for (const option of FOCUS) {
+      const best = exercises
+        .filter((ex) => ex.bp === option.value)
+        .sort((a, b) => b.rank - a.rank)[0];
+      if (best) map.set(option.value, best);
+    }
+    return map;
+  }, [exercises]);
 
   const go = (delta: number) => {
     setDirection(delta);
@@ -245,12 +258,14 @@ export default function WelcomePage() {
                 <div className="grid grid-cols-2 gap-3">
                   {FOCUS.map((option) => {
                     const selected = focus.includes(option.value);
+                    const art = focusArt.get(option.value);
                     return (
                       <motion.button
                         key={option.value}
                         type="button"
                         whileTap={{ scale: 0.96 }}
-                        transition={{ type: 'spring', stiffness: 480, damping: 30 }}
+                        animate={{ scale: selected ? 1 : 0.985 }}
+                        transition={{ type: 'spring', stiffness: 460, damping: 30 }}
                         onClick={() => {
                           haptic('select');
                           setFocus((f) =>
@@ -260,11 +275,33 @@ export default function WelcomePage() {
                           );
                         }}
                         aria-pressed={selected}
-                        className={`h-24 rounded-[var(--radius-lg)] px-5 text-start text-[17px] font-medium transition-colors ${
-                          selected ? 'bg-ink text-white' : `${option.tint} text-ink`
+                        className={`relative overflow-hidden rounded-[var(--radius-lg)] text-start transition-colors duration-200 ${
+                          selected ? TINT_DEEP[option.tint] : TINT_BG[option.tint]
                         }`}
                       >
-                        {option.label}
+                        {/* Selection deepens the same colour instead of turning
+                            the tile black, so the grid keeps reading as one set. */}
+                        <span
+                          className={`pointer-events-none absolute inset-0 rounded-[var(--radius-lg)] border-2 transition-colors duration-200 ${
+                            selected ? 'border-ink' : 'border-transparent'
+                          }`}
+                        />
+                        {art && (
+                          <span className="block h-28 w-full">
+                            <ExerciseMedia exercise={art} plain className="size-full" />
+                          </span>
+                        )}
+                        <span className="flex items-center justify-between gap-2 px-4 pb-4 pt-1">
+                          <span className="text-[19px] font-medium">{option.label}</span>
+                          <motion.span
+                            initial={false}
+                            animate={{ scale: selected ? 1 : 0.6, opacity: selected ? 1 : 0 }}
+                            transition={{ type: 'spring', stiffness: 520, damping: 26 }}
+                            className="grid size-7 shrink-0 place-items-center rounded-full bg-ink text-white"
+                          >
+                            <Check size={14} weight="bold" />
+                          </motion.span>
+                        </span>
                       </motion.button>
                     );
                   })}

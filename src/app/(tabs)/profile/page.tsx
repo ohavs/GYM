@@ -169,6 +169,31 @@ export default function ProfilePage() {
       </Rise>
 
       <Rise>
+        <SectionTitle>מרחב מאמנים</SectionTitle>
+        <div className="mb-8 flex items-center gap-4 rounded-[var(--radius-lg)] bg-card p-5 shadow-[var(--shadow-soft)]">
+          <span className="grid size-12 shrink-0 place-items-center rounded-full bg-sky">
+            <UsersThree size={19} weight="fill" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-[15.5px] font-medium">מצב מאמן</p>
+            <p className="text-[13px] text-muted">ניהול מתאמנים ובניית תוכניות עבורם</p>
+          </div>
+          <Switch
+            label="מצב מאמן"
+            checked={profile.role === 'coach'}
+            onChange={(next) => {
+              setProfile({ role: next ? 'coach' : 'trainee' });
+              if (next && trainees.length === 0) {
+                seedTrainees(exercises, meta).forEach(upsertTrainee);
+                toast({ text: 'מצב מאמן הופעל', detail: 'הוספנו מתאמני הדגמה', tone: 'ok' });
+              }
+              if (next) router.push('/coach');
+            }}
+          />
+        </div>
+      </Rise>
+
+      <Rise>
         <SectionTitle>הגדרות האימון</SectionTitle>
         <ul className="mb-8 flex flex-col gap-2.5">
           <SettingRow
@@ -200,31 +225,6 @@ export default function ProfilePage() {
             onClick={() => setEditing('place')}
           />
         </ul>
-      </Rise>
-
-      <Rise>
-        <SectionTitle>מרחב מאמנים</SectionTitle>
-        <div className="mb-8 flex items-center gap-4 rounded-[var(--radius-lg)] bg-card p-5 shadow-[var(--shadow-soft)]">
-          <span className="grid size-12 shrink-0 place-items-center rounded-full bg-sky">
-            <UsersThree size={19} weight="fill" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="text-[15.5px] font-medium">מצב מאמן</p>
-            <p className="text-[13px] text-muted">ניהול מתאמנים ובניית תוכניות עבורם</p>
-          </div>
-          <Switch
-            label="מצב מאמן"
-            checked={profile.role === 'coach'}
-            onChange={(next) => {
-              setProfile({ role: next ? 'coach' : 'trainee' });
-              if (next && trainees.length === 0) {
-                seedTrainees(exercises, meta).forEach(upsertTrainee);
-                toast({ text: 'מצב מאמן הופעל', detail: 'הוספנו מתאמני הדגמה', tone: 'ok' });
-              }
-              if (next) router.push('/coach');
-            }}
-          />
-        </div>
       </Rise>
 
       <Rise>

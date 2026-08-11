@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { BookmarkSimple, CaretDown } from '@phosphor-icons/react/dist/ssr';
+import { Barbell, BookmarkSimple, CaretDown, Crosshair, Gauge, Person } from '@phosphor-icons/react/dist/ssr';
 import { Sheet } from '@/components/ui/sheet';
 import { ExerciseMedia } from './exercise-media';
 import { useReadyCatalog } from '@/components/app-providers';
@@ -89,14 +89,30 @@ export function ExerciseSheet({
           </div>
 
           <dl className="grid grid-cols-2 gap-3">
-            <Fact label="שריר מטרה" value={meta.targets[exercise.tg] ?? exercise.tg} tint="mint" />
-            <Fact label="ציוד" value={equipment} tint="peach" />
             <Fact
+              icon={<Crosshair size={18} weight="bold" />}
+              label="שריר מטרה"
+              value={meta.targets[exercise.tg] ?? exercise.tg}
+              tint="mint"
+            />
+            <Fact
+              icon={<Barbell size={18} weight="bold" />}
+              label="ציוד"
+              value={equipment}
+              tint="peach"
+            />
+            <Fact
+              icon={<Person size={18} weight="bold" />}
               label="קבוצת שרירים"
               value={meta.muscles[exercise.mg] ?? exercise.mg}
               tint="lilac"
             />
-            <Fact label="רמה" value={LEVEL_LABEL[exercise.lvl]} tint="butter" />
+            <Fact
+              icon={<Gauge size={18} weight="bold" />}
+              label="רמה"
+              value={LEVEL_LABEL[exercise.lvl]}
+              tint="butter"
+            />
           </dl>
 
           {exercise.sec.length > 0 && (
@@ -179,19 +195,28 @@ export function ExerciseSheet({
   );
 }
 
+/**
+ * A tinted block with a small caption in it reads as unfinished. Giving each
+ * fact a glyph and a headline-sized value makes the tile carry real weight.
+ */
 function Fact({
+  icon,
   label,
   value,
   tint,
 }: {
+  icon: React.ReactNode;
   label: string;
   value: string;
   tint: keyof typeof TINT_BG;
 }) {
   return (
-    <div className={`rounded-[var(--radius-md)] ${TINT_BG[tint]} px-4 py-4`}>
-      <dt className="text-[12px] text-ink/50">{label}</dt>
-      <dd className="mt-1 truncate text-[16px] font-medium">{value}</dd>
+    <div className={`flex flex-col gap-4 rounded-[var(--radius-lg)] ${TINT_BG[tint]} p-5`}>
+      <span className="grid size-10 place-items-center rounded-full bg-white/60">{icon}</span>
+      <div>
+        <dt className="text-[12px] text-ink/50">{label}</dt>
+        <dd className="mt-1 text-[19px] font-medium leading-tight">{value}</dd>
+      </div>
     </div>
   );
 }

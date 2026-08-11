@@ -1,11 +1,13 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
 import {
   ArrowRight,
   BookmarkSimple,
+  CaretLeft,
   ChatCircleText,
   Check,
   DotsThree,
@@ -18,11 +20,13 @@ import { Button, IconButton } from '@/components/ui/button';
 import { CountUp, Pill, ProgressRing, TINTS, TINT_BG } from '@/components/ui/controls';
 import { ExerciseHero } from '@/components/exercise/exercise-card';
 import { ExerciseMedia } from '@/components/exercise/exercise-media';
+import { ExerciseSheet } from '@/components/exercise/exercise-sheet';
 import { useAccount, useReadyCatalog } from '@/components/app-providers';
 import { useStore } from '@/lib/store';
 import { estimateMinutes, useStreak, useTodayPlan, useWeekStats } from '@/lib/session';
 import { greeting, initials, relativeDay, volumeLabel } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
+import type { Exercise } from '@/lib/types';
 
 const WEEK_DAYS = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'];
 
@@ -36,6 +40,8 @@ export default function HomePage() {
   const logs = useStore((s) => s.logs);
   const saved = useStore((s) => s.saved);
   const startWorkout = useStore((s) => s.startWorkout);
+
+  const [preview, setPreview] = useState<Exercise | null>(null);
 
   const plan = useTodayPlan();
   const week = useWeekStats();
@@ -142,22 +148,29 @@ export default function HomePage() {
                     initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.05 * i, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                    className={`flex items-center gap-4 rounded-[var(--radius-md)] ${
-                      TINT_BG[TINTS[i % TINTS.length]]
-                    } p-3 pe-5`}
                   >
-                    <span className="size-14 shrink-0 overflow-hidden rounded-[var(--radius-sm)] bg-white/55">
-                      <ExerciseMedia exercise={exercise} plain className="size-full" />
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="line-clamp-1 text-[15px] font-medium">{exercise.he}</span>
-                      <span className="num mt-0.5 block text-[12.5px] text-ink/55">
-                        {block.sets} סטים · {block.reps} חזרות
+                    {/* Tapping opens the exercise. Sets are ticked inside the
+                        workout itself, so no checkbox is offered here. */}
+                    <motion.button
+                      type="button"
+                      whileTap={{ scale: 0.985 }}
+                      transition={{ type: 'spring', stiffness: 460, damping: 30 }}
+                      onClick={() => setPreview(exercise)}
+                      className={`flex w-full items-center gap-4 rounded-[var(--radius-md)] ${
+                        TINT_BG[TINTS[i % TINTS.length]]
+                      } p-3 pe-5 text-start`}
+                    >
+                      <span className="size-14 shrink-0 overflow-hidden rounded-[var(--radius-sm)] bg-white/55">
+                        <ExerciseMedia exercise={exercise} plain className="size-full" />
                       </span>
-                    </span>
-                    <span className="grid size-7 shrink-0 place-items-center rounded-full border-[1.5px] border-ink/20 text-transparent">
-                      <Check size={13} weight="bold" />
-                    </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="line-clamp-1 text-[15px] font-medium">{exercise.he}</span>
+                        <span className="num mt-0.5 block text-[12.5px] text-ink/55">
+                          {block.sets} סטים · {block.reps} חזרות
+                        </span>
+                      </span>
+                      <CaretLeft size={16} weight="bold" className="shrink-0 text-ink/30" />
+                    </motion.button>
                   </motion.li>
                 );
               })}
@@ -337,6 +350,7 @@ export default function HomePage() {
           </Link>
         </Rise>
       )}
+      <ExerciseSheet exercise={preview} onClose={() => setPreview(null)} />
     </Screen>
   );
 }

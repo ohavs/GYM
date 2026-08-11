@@ -44,8 +44,11 @@
   --lilac: #e8e3f8;
   --lilac-deep: #d5cdf1;
   --butter: #fcefd1;
+  --butter-deep: #f7e0ac;
   --sky: #dee9f8;
+  --sky-deep: #c4d8f2;
   --blush: #fadedd;
+  --blush-deep: #f4c5c3;
 
   --amber: #eda31f;
   --green: #2ba98a;
@@ -77,8 +80,11 @@
   --color-lilac: var(--lilac);
   --color-lilac-deep: var(--lilac-deep);
   --color-butter: var(--butter);
+  --color-butter-deep: var(--butter-deep);
   --color-sky: var(--sky);
+  --color-sky-deep: var(--sky-deep);
   --color-blush: var(--blush);
+  --color-blush-deep: var(--blush-deep);
 
   --color-amber: var(--amber);
   --color-green: var(--green);

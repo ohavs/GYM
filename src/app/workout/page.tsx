@@ -3,22 +3,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'motion/react';
-import {
-  ArrowsClockwise,
-  Check,
-  CaretLeft,
-  CaretRight,
-  Info,
-  Minus,
-  Plus,
-  X,
-} from '@phosphor-icons/react/dist/ssr';
+import { ArrowsClockwise, CaretLeft, CaretRight, Info, X } from '@phosphor-icons/react/dist/ssr';
 import { Button, IconButton } from '@/components/ui/button';
 import { Sheet } from '@/components/ui/sheet';
-import { Pill, Stepper, tintFor } from '@/components/ui/controls';
+import { Pill, tintFor } from '@/components/ui/controls';
 import { ExerciseMedia } from '@/components/exercise/exercise-media';
 import { ExerciseSheet } from '@/components/exercise/exercise-sheet';
 import { ExerciseRow } from '@/components/exercise/exercise-card';
+import { SetList } from '@/components/workout/set-list';
 import { RestTimer, type Rest } from '@/components/workout/rest-timer';
 import { WorkoutSummary } from '@/components/workout/summary';
 import { useCatalog } from '@/components/app-providers';
@@ -52,6 +44,7 @@ export default function WorkoutPage() {
   const [swapOpen, setSwapOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
   const [summary, setSummary] = useState<WorkoutLog | null>(null);
+  const [openSet, setOpenSet] = useState(0);
 
   useEffect(() => {
     if (hydrated && !active && !summary) router.replace('/');
@@ -88,14 +81,17 @@ export default function WorkoutPage() {
   const completeSet = (setIndex: number) => {
     const set = entry.sets[setIndex];
     updateSet(index, setIndex, { done: !set.done });
-    if (!set.done) {
-      haptic('success');
-      const lastOfWorkout =
-        setIndex === entry.sets.length - 1 && index === active.entries.length - 1;
-      setRest(
-        lastOfWorkout ? null : { endsAt: Date.now() + block.rest * 1000, total: block.rest },
-      );
+    if (set.done) {
+      // Reopening a finished set: leave it open so it can be corrected.
+      setOpenSet(setIndex);
+      return;
     }
+    haptic('success');
+    const nextUnfinished = entry.sets.findIndex((s, i) => i !== setIndex && !s.done);
+    setOpenSet(nextUnfinished === -1 ? setIndex : nextUnfinished);
+    const lastOfWorkout =
+      setIndex === entry.sets.length - 1 && index === active.entries.length - 1;
+    setRest(lastOfWorkout ? null : { endsAt: Date.now() + block.rest * 1000, total: block.rest });
   };
 
   const move = (delta: number) => {
@@ -103,6 +99,7 @@ export default function WorkoutPage() {
     if (next < 0 || next >= active.entries.length) return;
     haptic('select');
     setRest(null);
+    setOpenSet(Math.max(0, active.entries[next].sets.findIndex((s) => !s.done)));
     setActiveIndex(next);
   };
 
@@ -192,105 +189,33 @@ export default function WorkoutPage() {
               </p>
             </div>
 
-            <div className="mt-6 flex items-center gap-3 px-2 pb-2 text-[12px] text-faint">
-              <span className="w-8 shrink-0 text-center">סט</span>
-              <span className="flex-1 text-center">משקל בק״ג</span>
-              <span className="flex-1 text-center">חזרות</span>
-              <span className="w-11 shrink-0" />
-            </div>
-
-            <ul className="flex flex-col gap-2.5">
-              {entry.sets.map((set, setIndex) => (
-                <motion.li
-                  key={setIndex}
-                  layout
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.26, delay: setIndex * 0.035 }}
-                  className={`flex items-center gap-3 rounded-[var(--radius-md)] p-2.5 transition-colors duration-250 ${
-                    set.done ? 'bg-mint' : 'bg-card shadow-[var(--shadow-soft)]'
-                  }`}
-                >
-                  <span
-                    className={`num grid size-8 shrink-0 place-items-center rounded-full text-[13px] font-semibold ${
-                      set.done ? 'bg-white/60 text-ink' : 'bg-canvas text-muted'
-                    }`}
-                  >
-                    {setIndex + 1}
-                  </span>
-
-                  <div className="flex flex-1 justify-center">
-                    <Stepper
-                      compact
-                      label="משקל בקילוגרם"
-                      value={set.weight}
-                      step={2.5}
-                      max={500}
-                      onChange={(weight) => updateSet(index, setIndex, { weight })}
-                    />
-                  </div>
-                  <div className="flex flex-1 justify-center">
-                    <Stepper
-                      compact
-                      label="מספר חזרות"
-                      value={set.reps}
-                      step={1}
-                      max={100}
-                      onChange={(reps) => updateSet(index, setIndex, { reps })}
-                    />
-                  </div>
-
-                  <motion.button
-                    type="button"
-                    whileTap={{ scale: 0.86 }}
-                    transition={{ type: 'spring', stiffness: 520, damping: 28 }}
-                    onClick={() => completeSet(setIndex)}
-                    aria-label={set.done ? 'ביטול סימון הסט' : 'סימון הסט כבוצע'}
-                    aria-pressed={set.done}
-                    className={`grid size-11 shrink-0 place-items-center rounded-full border-2 transition-colors ${
-                      set.done
-                        ? 'border-ink bg-ink text-white'
-                        : 'border-line-strong bg-card text-line-strong'
-                    }`}
-                  >
-                    <Check size={18} weight="bold" />
-                  </motion.button>
-                </motion.li>
-              ))}
-            </ul>
-
-            <div className="mt-3.5 flex items-center gap-2.5">
-              <button
-                type="button"
-                onClick={() => {
-                  haptic('tap');
+            <div className="mt-7">
+              <SetList
+                sets={entry.sets}
+                block={block}
+                activeIndex={openSet}
+                onActivate={setOpenSet}
+                onUpdate={(setIndex, patch) => updateSet(index, setIndex, patch)}
+                onComplete={completeSet}
+                onAdd={() => {
                   addSet(index);
+                  setOpenSet(entry.sets.length);
                 }}
-                className="flex h-12 flex-1 items-center justify-center gap-1.5 rounded-full bg-card text-[14px] font-medium text-ink-soft shadow-[var(--shadow-soft)]"
-              >
-                <Plus size={15} weight="bold" />
-                סט נוסף
-              </button>
-              {entry.sets.length > 1 && (
-                <IconButton
-                  label="הסרת סט"
-                  onClick={() => {
-                    haptic('tap');
-                    removeSet(index);
-                  }}
-                >
-                  <Minus size={15} weight="bold" />
-                </IconButton>
-              )}
-              <button
-                type="button"
-                onClick={() => setSwapOpen(true)}
-                className="flex h-12 items-center gap-1.5 rounded-full bg-card px-5 text-[14px] font-medium text-ink-soft shadow-[var(--shadow-soft)]"
-              >
-                <ArrowsClockwise size={15} weight="bold" />
-                החלפה
-              </button>
+                onRemove={() => {
+                  removeSet(index);
+                  setOpenSet((v) => Math.min(v, entry.sets.length - 2));
+                }}
+              />
             </div>
+
+            <button
+              type="button"
+              onClick={() => setSwapOpen(true)}
+              className="mt-3 flex h-12 w-full items-center justify-center gap-1.5 rounded-full text-[14px] font-medium text-muted"
+            >
+              <ArrowsClockwise size={15} weight="bold" />
+              החלפת התרגיל
+            </button>
           </motion.section>
         </AnimatePresence>
       </div>

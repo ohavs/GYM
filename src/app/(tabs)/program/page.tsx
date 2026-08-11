@@ -69,6 +69,9 @@ export default function ProgramPage() {
 
   const split = weeklyMuscleSplit(program, byId, meta);
   const maxSets = Math.max(...split.map((s) => s.sets), 1);
+  // Several areas can share the top spot, so the summary names all of them
+  // rather than picking whichever happened to sort first.
+  const busiest = split.filter((row) => row.sets === maxSets).map((row) => row.label);
 
   const rebuild = () => {
     haptic('success');
@@ -105,28 +108,43 @@ export default function ProgramPage() {
         </Rise>
       )}
 
+      {/* "Weekly volume by area" meant nothing to anyone who is not a coach.
+          Same data, said plainly: which areas the week works, and how hard. */}
       <Rise>
         <section className="mb-7 rounded-[var(--radius-lg)] bg-card p-6 shadow-[var(--shadow-soft)]">
-          <h2 className="mb-5 text-[18px]">נפח שבועי לפי אזור</h2>
-          <ul className="flex flex-col gap-3.5">
+          <h2 className="text-[18px]">על מה עובדים השבוע</h2>
+          <p className="mt-1.5 text-[13.5px] leading-relaxed text-muted">
+            כמה סטים כל אזור בגוף מקבל לאורך {program.days.length} האימונים. ככל שהפס ארוך
+            יותר, האזור מקבל יותר עבודה.
+          </p>
+          <ul className="mt-5 flex flex-col gap-4">
             {split.map((row, i) => (
-              <li key={row.label} className="flex items-center gap-3.5">
-                <span className="w-16 shrink-0 text-[13px] text-muted">{row.label}</span>
-                <span className="h-2.5 flex-1 overflow-hidden rounded-full bg-canvas">
+              <li key={row.label}>
+                <div className="mb-1.5 flex items-baseline justify-between gap-3">
+                  <span className="text-[14.5px] font-medium">{row.label}</span>
+                  <span className="num text-[13px] text-muted">{row.sets} סטים</span>
+                </div>
+                <span className="block h-3 overflow-hidden rounded-full bg-canvas">
                   <motion.span
                     initial={{ scaleX: 0 }}
                     animate={{ scaleX: row.sets / maxSets }}
                     transition={{ duration: 0.7, delay: i * 0.06, ease: [0.22, 1, 0.36, 1] }}
                     style={{ transformOrigin: 'right' }}
-                    className="block h-full rounded-full bg-ink"
+                    className={`block h-full rounded-full ${
+                      row.sets === maxSets ? 'bg-ink' : 'bg-lilac-deep'
+                    }`}
                   />
-                </span>
-                <span className="num w-7 shrink-0 text-end text-[14px] font-semibold">
-                  {row.sets}
                 </span>
               </li>
             ))}
           </ul>
+          <p className="mt-5 border-t border-line pt-4 text-[13.5px] leading-relaxed text-muted">
+            הכי הרבה עבודה השבוע הולכת ל
+            <span className="font-medium text-ink">
+              {busiest.length > 1 ? busiest.slice(0, 2).join(' ול') : busiest[0]}
+            </span>
+            .
+          </p>
         </section>
       </Rise>
 
