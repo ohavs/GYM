@@ -1,0 +1,408 @@
+'use client';
+
+import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { AnimatePresence, motion } from 'motion/react';
+import {
+  ArrowsClockwise,
+  Check,
+  CaretLeft,
+  CaretRight,
+  Info,
+  Minus,
+  Plus,
+  X,
+} from '@phosphor-icons/react/dist/ssr';
+import { Button, IconButton } from '@/components/ui/button';
+import { Sheet } from '@/components/ui/sheet';
+import { Stepper } from '@/components/ui/controls';
+import { ExerciseMedia } from '@/components/exercise/exercise-media';
+import { ExerciseSheet } from '@/components/exercise/exercise-sheet';
+import { ExerciseRow } from '@/components/exercise/exercise-card';
+import { RestTimer, type Rest } from '@/components/workout/rest-timer';
+import { WorkoutSummary } from '@/components/workout/summary';
+import { useCatalog } from '@/components/app-providers';
+import { useHydrated, useStore } from '@/lib/store';
+import { alternativesFor } from '@/lib/program';
+import { mmss } from '@/lib/format';
+import { haptic } from '@/lib/haptics';
+import { useToast } from '@/components/ui/toast';
+import type { WorkoutLog } from '@/lib/types';
+
+export default function WorkoutPage() {
+  const router = useRouter();
+  const hydrated = useHydrated();
+  const { ready, byId, exercises, meta } = useCatalog();
+  const toast = useToast();
+
+  const active = useStore((s) => s.active);
+  const program = useStore((s) => s.program);
+  const place = useStore((s) => s.profile.place);
+  const updateSet = useStore((s) => s.updateSet);
+  const addSet = useStore((s) => s.addSet);
+  const removeSet = useStore((s) => s.removeSet);
+  const swapExercise = useStore((s) => s.swapExercise);
+  const setActiveIndex = useStore((s) => s.setActiveIndex);
+  const finishWorkout = useStore((s) => s.finishWorkout);
+  const cancelWorkout = useStore((s) => s.cancelWorkout);
+
+  const [elapsed, setElapsed] = useState(0);
+  const [rest, setRest] = useState<Rest | null>(null);
+  const [confirmExit, setConfirmExit] = useState(false);
+  const [swapOpen, setSwapOpen] = useState(false);
+  const [infoOpen, setInfoOpen] = useState(false);
+  const [summary, setSummary] = useState<WorkoutLog | null>(null);
+
+  useEffect(() => {
+    if (hydrated && !active && !summary) router.replace('/');
+  }, [hydrated, active, summary, router]);
+
+  useEffect(() => {
+    if (!active) return;
+    const tick = () => setElapsed(Date.now() - active.startedAt);
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [active]);
+
+  const day = useMemo(
+    () => program?.days.find((d) => d.id === active?.dayId) ?? null,
+    [program, active],
+  );
+
+  if (!hydrated || !ready || !meta) return null;
+  if (summary) return <WorkoutSummary log={summary} onClose={() => router.replace('/')} />;
+  if (!active || !day) return null;
+
+  const index = Math.min(active.index, active.entries.length - 1);
+  const entry = active.entries[index];
+  const block = day.blocks[index];
+  const exercise = byId.get(entry.exerciseId);
+  const nextExercise = byId.get(active.entries[index + 1]?.exerciseId ?? '');
+  if (!exercise) return null;
+
+  const doneSets = entry.sets.filter((s) => s.done).length;
+  const totalDone = active.entries.reduce((n, e) => n + e.sets.filter((s) => s.done).length, 0);
+  const totalSets = active.entries.reduce((n, e) => n + e.sets.length, 0);
+
+  const completeSet = (setIndex: number) => {
+    const set = entry.sets[setIndex];
+    updateSet(index, setIndex, { done: !set.done });
+    if (!set.done) {
+      haptic('success');
+      const lastOfWorkout =
+        setIndex === entry.sets.length - 1 && index === active.entries.length - 1;
+      setRest(
+        lastOfWorkout ? null : { endsAt: Date.now() + block.rest * 1000, total: block.rest },
+      );
+    }
+  };
+
+  const move = (delta: number) => {
+    const next = index + delta;
+    if (next < 0 || next >= active.entries.length) return;
+    haptic('select');
+    setRest(null);
+    setActiveIndex(next);
+  };
+
+  const finish = () => {
+    const log = finishWorkout();
+    if (!log) {
+      toast({ text: 'לא סימנתם אף סט', detail: 'האימון נסגר בלי להישמר', tone: 'warn' });
+      router.replace('/');
+      return;
+    }
+    haptic('success');
+    setSummary(log);
+  };
+
+  const alternatives = swapOpen
+    ? alternativesFor(exercise, exercises, place, meta)
+    : [];
+
+  return (
+    <div className="min-h-[100dvh] bg-bg safe-t">
+      <div className="mx-auto w-full max-w-[560px] px-4 pb-44">
+        <header className="flex items-center gap-3 pt-3 pb-4">
+          <IconButton label="יציאה מהאימון" onClick={() => setConfirmExit(true)}>
+            <X size={18} weight="bold" />
+          </IconButton>
+          <div className="min-w-0 flex-1 text-center">
+            <p className="truncate text-[14px] font-semibold">{day.name}</p>
+            <p className="digits text-[12px] text-muted">{mmss(elapsed / 1000)}</p>
+          </div>
+          <Button size="sm" variant="secondary" onClick={finish}>
+            סיום
+          </Button>
+        </header>
+
+        <div className="mb-4 flex gap-1">
+          {active.entries.map((e, i) => {
+            const complete = e.sets.every((s) => s.done);
+            return (
+              <button
+                key={`${e.exerciseId}-${i}`}
+                type="button"
+                aria-label={`תרגיל ${i + 1}`}
+                onClick={() => {
+                  haptic('select');
+                  setActiveIndex(i);
+                }}
+                className={`h-1.5 flex-1 rounded-full transition-colors ${
+                  complete ? 'bg-ok' : i === index ? 'bg-accent' : 'bg-surface-3'
+                }`}
+              />
+            );
+          })}
+        </div>
+
+        <AnimatePresence mode="wait">
+          <motion.section
+            key={`${exercise.id}-${index}`}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <div className="overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface">
+              <ExerciseMedia
+                exercise={exercise}
+                animate
+                className="mx-auto aspect-square w-full max-w-[300px]"
+                sizes="300px"
+              />
+            </div>
+
+            <div className="mt-4 flex items-start gap-3">
+              <div className="min-w-0 flex-1">
+                <p className="text-[13px] font-semibold text-accent">
+                  תרגיל <span className="num">{index + 1}</span> מתוך{' '}
+                  <span className="num">{active.entries.length}</span>
+                </p>
+                <h1 className="mt-1 text-[22px] leading-tight">{exercise.he}</h1>
+                <p className="mt-1 text-[13px] text-muted">
+                  <span className="num">{block.sets}</span> סטים ·{' '}
+                  <span className="num">{block.reps}</span> חזרות · מנוחה{' '}
+                  <span className="num">{block.rest}</span> שניות
+                </p>
+              </div>
+              <IconButton label="פרטי התרגיל" onClick={() => setInfoOpen(true)}>
+                <Info size={18} weight="bold" />
+              </IconButton>
+            </div>
+
+            <div className="mt-4 flex items-center gap-2 px-1 pb-1.5 text-[11px] font-semibold text-faint">
+              <span className="w-7 shrink-0 text-center">סט</span>
+              <span className="flex-1 text-center">משקל בק״ג</span>
+              <span className="flex-1 text-center">חזרות</span>
+              <span className="w-10 shrink-0" />
+            </div>
+
+            <ul className="flex flex-col gap-2">
+              {entry.sets.map((set, setIndex) => (
+                <motion.li
+                  key={setIndex}
+                  layout
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.24, delay: setIndex * 0.03 }}
+                  className={`flex items-center gap-2 rounded-[var(--radius-field)] border p-2 transition-colors ${
+                    set.done ? 'border-ok/30 bg-ok-wash' : 'border-line bg-surface'
+                  }`}
+                >
+                  <span
+                    className={`num grid size-7 shrink-0 place-items-center rounded-lg text-[12px] font-bold ${
+                      set.done ? 'bg-ok/20 text-ok' : 'bg-surface-2 text-muted'
+                    }`}
+                  >
+                    {setIndex + 1}
+                  </span>
+
+                  <div className="flex flex-1 justify-center">
+                    <Stepper
+                      compact
+                      label="משקל בקילוגרם"
+                      value={set.weight}
+                      step={2.5}
+                      max={500}
+                      onChange={(weight) => updateSet(index, setIndex, { weight })}
+                    />
+                  </div>
+                  <div className="flex flex-1 justify-center">
+                    <Stepper
+                      compact
+                      label="מספר חזרות"
+                      value={set.reps}
+                      step={1}
+                      max={100}
+                      onChange={(reps) => updateSet(index, setIndex, { reps })}
+                    />
+                  </div>
+
+                  <motion.button
+                    type="button"
+                    whileTap={{ scale: 0.88 }}
+                    transition={{ type: 'spring', stiffness: 540, damping: 28 }}
+                    onClick={() => completeSet(setIndex)}
+                    aria-label={set.done ? 'ביטול סימון הסט' : 'סימון הסט כבוצע'}
+                    aria-pressed={set.done}
+                    className={`grid size-10 shrink-0 place-items-center rounded-full border-2 transition-colors ${
+                      set.done
+                        ? 'border-ok bg-ok text-white'
+                        : 'border-line bg-surface-2 text-faint'
+                    }`}
+                  >
+                    <Check size={17} weight="bold" />
+                  </motion.button>
+                </motion.li>
+              ))}
+            </ul>
+
+            <div className="mt-3 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  haptic('tap');
+                  addSet(index);
+                }}
+                className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full border border-line bg-surface-2 text-[14px] font-semibold text-muted"
+              >
+                <Plus size={14} weight="bold" />
+                סט נוסף
+              </button>
+              {entry.sets.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    haptic('tap');
+                    removeSet(index);
+                  }}
+                  aria-label="הסרת סט"
+                  className="grid size-10 place-items-center rounded-full border border-line bg-surface-2 text-muted"
+                >
+                  <Minus size={14} weight="bold" />
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setSwapOpen(true)}
+                className="flex h-10 items-center gap-1.5 rounded-full border border-line bg-surface-2 px-4 text-[14px] font-semibold text-muted"
+              >
+                <ArrowsClockwise size={14} weight="bold" />
+                החלפה
+              </button>
+            </div>
+          </motion.section>
+        </AnimatePresence>
+      </div>
+
+      {/* One fixed bottom stack: rest timer on top of the exercise navigation,
+          so a running timer never covers the next-exercise controls. */}
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-bg-elev/94 backdrop-blur-2xl">
+        <RestTimer
+          rest={rest}
+          onExtend={() =>
+            setRest((current) =>
+              current ? { endsAt: current.endsAt + 15_000, total: current.total + 15 } : current,
+            )
+          }
+          nextLabel={
+            doneSets < entry.sets.length
+              ? `סט ${doneSets + 1} ב${exercise.he}`
+              : (nextExercise?.he ?? 'סיום האימון')
+          }
+          onDone={() => setRest(null)}
+        />
+        <div className="mx-auto flex w-full max-w-[560px] items-center gap-3 px-4 pt-3 pb-[max(env(safe-area-inset-bottom),14px)]">
+          <IconButton label="התרגיל הקודם" onClick={() => move(-1)} disabled={index === 0}>
+            <CaretRight size={18} weight="bold" />
+          </IconButton>
+          <div className="min-w-0 flex-1 text-center">
+            <p className="digits text-[13px] font-bold">
+              {totalDone}/{totalSets}
+            </p>
+            <p className="truncate text-[12px] text-muted">
+              {doneSets === entry.sets.length ? 'התרגיל הושלם' : 'סטים שהושלמו'}
+            </p>
+          </div>
+          {index === active.entries.length - 1 ? (
+            <Button size="sm" onClick={finish}>
+              סיימו אימון
+            </Button>
+          ) : (
+            <IconButton label="התרגיל הבא" onClick={() => move(1)} tone="accent">
+              <CaretLeft size={18} weight="bold" />
+            </IconButton>
+          )}
+        </div>
+      </div>
+
+      <Sheet
+        open={swapOpen}
+        onClose={() => setSwapOpen(false)}
+        title="החלפת תרגיל"
+        subtitle="חלופות שעובדות על אותו שריר עם הציוד שיש לכם"
+      >
+        <ul className="flex flex-col gap-2 py-2">
+          {alternatives.map((alt) => (
+            <li key={alt.id}>
+              <ExerciseRow
+                exercise={alt}
+                meta={meta}
+                onClick={() => {
+                  swapExercise(index, alt.id);
+                  setSwapOpen(false);
+                  toast({ text: 'התרגיל הוחלף', detail: alt.he, tone: 'ok' });
+                }}
+              />
+            </li>
+          ))}
+        </ul>
+      </Sheet>
+
+      <ExerciseSheet
+        exercise={infoOpen ? exercise : null}
+        onClose={() => setInfoOpen(false)}
+      />
+
+      <Sheet
+        open={confirmExit}
+        onClose={() => setConfirmExit(false)}
+        title="לצאת מהאימון?"
+        subtitle="הסטים שסימנתם יישמרו אם תסיימו במקום לבטל."
+        footer={
+          <div className="flex flex-col gap-2.5">
+            <Button
+              block
+              onClick={() => {
+                setConfirmExit(false);
+                finish();
+              }}
+            >
+              סיימו ושמרו
+            </Button>
+            <Button
+              block
+              variant="danger"
+              onClick={() => {
+                cancelWorkout();
+                router.replace('/');
+              }}
+            >
+              ביטול האימון
+            </Button>
+            <Button block variant="ghost" onClick={() => setConfirmExit(false)}>
+              חזרה לאימון
+            </Button>
+          </div>
+        }
+      >
+        <p className="py-2 text-[14px] leading-relaxed text-muted">
+          השלמתם <span className="num font-bold text-text">{totalDone}</span> סטים מתוך{' '}
+          <span className="num">{totalSets}</span> באימון הזה.
+        </p>
+      </Sheet>
+    </div>
+  );
+}
