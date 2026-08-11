@@ -2,8 +2,9 @@
 
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { loadIndex } from '@/lib/data';
-import { useStore } from '@/lib/store';
+import { useFirebaseSync, type SyncStatus } from '@/lib/sync';
 import type { Exercise, Meta } from '@/lib/types';
+import type { User } from '@/lib/firebase';
 import { ToastProvider } from '@/components/ui/toast';
 
 type Catalog = {
@@ -24,20 +25,25 @@ const CatalogContext = createContext<Catalog>({
   retry: () => {},
 });
 
+const AccountContext = createContext<{ user: User | null; status: SyncStatus }>({
+  user: null,
+  status: 'guest',
+});
+
 export const useCatalog = () => useContext(CatalogContext);
+export const useAccount = () => useContext(AccountContext);
 
 /** Convenience for screens that only render once the catalog exists. */
 export function useReadyCatalog() {
-  const catalog = useCatalog();
-  return catalog as Catalog & { meta: Meta };
+  return useCatalog() as Catalog & { meta: Meta };
 }
 
 function CatalogProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<{ exercises: Exercise[]; meta: Meta | null; failed: boolean }>({
-    exercises: [],
-    meta: null,
-    failed: false,
-  });
+  const [state, setState] = useState<{
+    exercises: Exercise[];
+    meta: Meta | null;
+    failed: boolean;
+  }>({ exercises: [], meta: null, failed: false });
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
@@ -69,29 +75,18 @@ function CatalogProvider({ children }: { children: React.ReactNode }) {
   return <CatalogContext.Provider value={value}>{children}</CatalogContext.Provider>;
 }
 
-/** Keeps the document theme attribute in sync with the stored preference. */
-function ThemeSync() {
-  const theme = useStore((s) => s.theme);
-
-  useEffect(() => {
-    const media = window.matchMedia('(prefers-color-scheme: dark)');
-    const apply = () => {
-      const dark = theme === 'dark' || (theme === 'system' && media.matches);
-      document.documentElement.dataset.theme = dark ? 'dark' : 'light';
-    };
-    apply();
-    media.addEventListener('change', apply);
-    return () => media.removeEventListener('change', apply);
-  }, [theme]);
-
-  return null;
+function AccountProvider({ children }: { children: React.ReactNode }) {
+  const { user, status } = useFirebaseSync();
+  const value = useMemo(() => ({ user, status }), [user, status]);
+  return <AccountContext.Provider value={value}>{children}</AccountContext.Provider>;
 }
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
     <CatalogProvider>
-      <ThemeSync />
-      <ToastProvider>{children}</ToastProvider>
+      <AccountProvider>
+        <ToastProvider>{children}</ToastProvider>
+      </AccountProvider>
     </CatalogProvider>
   );
 }

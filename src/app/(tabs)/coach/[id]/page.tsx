@@ -12,15 +12,15 @@ import {
   Plus,
   Trash,
 } from '@phosphor-icons/react/dist/ssr';
-import { Screen, ScreenHeader, SectionTitle } from '@/components/layout/screen';
+import { Rise, Screen, ScreenHeader, SectionTitle } from '@/components/layout/screen';
 import { Button, IconButton } from '@/components/ui/button';
-import { EmptyState, Field, Stat, Stepper } from '@/components/ui/controls';
+import { EmptyState, Field, Stepper, TINT_BG, tintFor } from '@/components/ui/controls';
 import { Sheet } from '@/components/ui/sheet';
 import { ExerciseMedia } from '@/components/exercise/exercise-media';
 import { ExercisePicker } from '@/components/coach/exercise-picker';
 import { useReadyCatalog } from '@/components/app-providers';
 import { useStore } from '@/lib/store';
-import { adherence, adherenceTone } from '@/lib/demo';
+import { adherence } from '@/lib/demo';
 import { GOAL_LABEL, LEVEL_LABEL, PLACE_LABEL } from '@/lib/program';
 import { estimateMinutes } from '@/lib/session';
 import { avatarHue, initials, relativeDay, shortDate } from '@/lib/format';
@@ -53,7 +53,7 @@ export default function TraineePage({ params }: { params: Promise<{ id: string }
       <Screen>
         <ScreenHeader title="מתאמן" back />
         <EmptyState
-          icon={<Eye size={26} />}
+          icon={<Eye size={30} />}
           title="המתאמן לא נמצא"
           body="ייתכן שהוא הוסר מהרשימה."
           action={<Button onClick={() => router.replace('/coach')}>חזרה לרשימה</Button>}
@@ -64,7 +64,6 @@ export default function TraineePage({ params }: { params: Promise<{ id: string }
 
   const program = trainee.program;
   const value = adherence(trainee);
-  const tone = adherenceTone(value);
   const hue = avatarHue(trainee.name);
 
   const updateProgram = (next: Program) => setTraineeProgram(trainee.id, next);
@@ -109,70 +108,88 @@ export default function TraineePage({ params }: { params: Promise<{ id: string }
     <Screen>
       <ScreenHeader title={trainee.name} subtitle={GOAL_LABEL[trainee.goal]} back />
 
-      <section className="card mb-4 p-5">
-        <div className="flex items-center gap-4">
-          <span
-            className="grid size-14 shrink-0 place-items-center rounded-2xl text-[17px] font-bold text-white"
-            style={{ background: `linear-gradient(140deg, hsl(${hue} 46% 42%), hsl(${hue + 14} 42% 27%))` }}
-          >
-            {initials(trainee.name)}
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="text-[13px] text-muted">
-              {LEVEL_LABEL[trainee.level]} · {PLACE_LABEL[trainee.place]}
-            </p>
-            <p className="mt-0.5 text-[13px] text-muted">
-              הצטרף {shortDate(trainee.joinedAt)} · פעיל {relativeDay(trainee.lastActive)}
-            </p>
+      <Rise>
+        <section className="mb-4 rounded-[var(--radius-lg)] bg-ink p-6 text-white">
+          <div className="flex items-center gap-4">
+            <span
+              className="grid size-14 shrink-0 place-items-center rounded-[var(--radius-sm)] text-[17px] font-semibold text-white"
+              style={{ background: `linear-gradient(140deg, hsl(${hue} 42% 52%), hsl(${hue + 16} 40% 38%))` }}
+            >
+              {initials(trainee.name)}
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-[13.5px] text-white/70">
+                {LEVEL_LABEL[trainee.level]} · {PLACE_LABEL[trainee.place]}
+              </p>
+              <p className="mt-1 text-[12.5px] text-white/45">
+                הצטרף {shortDate(trainee.joinedAt)} · פעיל {relativeDay(trainee.lastActive)}
+              </p>
+            </div>
           </div>
-        </div>
 
-        <div className="mt-5 grid grid-cols-3 gap-3 border-t border-line-soft pt-4">
-          <Stat value={`${trainee.done}/${trainee.planned}`} label="התמדה ב-4 שבועות" numeric />
-          <Stat value={`${Math.round(value * 100)}%`} label="עמידה ביעד" numeric tone={tone === 'ok' ? 'accent' : 'default'} />
-          <Stat value={String(trainee.days)} label="אימונים בשבוע" numeric />
-        </div>
-      </section>
-
-      <section className="mb-5 rounded-[var(--radius-card)] border border-line bg-surface-2 p-4">
-        <div className="flex items-start gap-3">
-          <div className="min-w-0 flex-1">
-            <p className="text-[13px] font-semibold text-muted">הערה למתאמן</p>
-            <p className="mt-1 text-[14px] leading-relaxed">
-              {trainee.note || 'עוד לא הוספתם הערה.'}
-            </p>
+          <div className="mt-6 grid grid-cols-3 items-start gap-3 border-t border-white/10 pt-5 text-white">
+            <div className="flex flex-col gap-1">
+              <span className="digits text-[26px] font-semibold leading-none">
+                {trainee.done}/{trainee.planned}
+              </span>
+              <span className="text-[12px] text-white/45">התמדה</span>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="digits text-[26px] font-semibold leading-none">
+                {Math.round(value * 100)}%
+              </span>
+              <span className="text-[12px] text-white/45">עמידה ביעד</span>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="num text-[26px] font-semibold leading-none">{trainee.days}</span>
+              <span className="text-[12px] text-white/45">אימונים בשבוע</span>
+            </div>
           </div>
-          <IconButton
-            label="עריכת ההערה"
-            onClick={() => {
-              setNoteDraft(trainee.note);
-              setNoteOpen(true);
-            }}
-          >
-            <PencilSimple size={16} weight="bold" />
-          </IconButton>
-        </div>
-      </section>
+        </section>
+      </Rise>
+
+      <Rise>
+        <section className="mb-8 rounded-[var(--radius-lg)] bg-butter p-5">
+          <div className="flex items-start gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="text-[12.5px] font-medium text-ink/55">הערה למתאמן</p>
+              <p className="mt-1.5 text-[14.5px] leading-relaxed">
+                {trainee.note || 'עוד לא הוספתם הערה.'}
+              </p>
+            </div>
+            <IconButton
+              label="עריכת ההערה"
+              size="sm"
+              onClick={() => {
+                setNoteDraft(trainee.note);
+                setNoteOpen(true);
+              }}
+            >
+              <PencilSimple size={16} weight="bold" />
+            </IconButton>
+          </div>
+        </section>
+      </Rise>
 
       {program ? (
         <>
-          <SectionTitle
-            action={
-              <span className="text-[13px] text-faint">
-                <span className="num">{program.days.length}</span> ימים
-              </span>
-            }
-          >
-            עורך המסלול
-          </SectionTitle>
+          <Rise>
+            <SectionTitle
+              action={
+                <span className="num text-[13px] text-faint">{program.days.length} ימים</span>
+              }
+            >
+              עורך המסלול
+            </SectionTitle>
+          </Rise>
 
-          <ul className="flex flex-col gap-3">
+          <ul className="flex flex-col gap-3.5">
             {program.days.map((day, dayIndex) => {
               const expanded = openDay === day.id;
               return (
                 <li
                   key={day.id}
-                  className="overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface"
+                  className="overflow-hidden rounded-[var(--radius-lg)] bg-card shadow-[var(--shadow-soft)]"
                 >
                   <button
                     type="button"
@@ -181,20 +198,21 @@ export default function TraineePage({ params }: { params: Promise<{ id: string }
                       setOpenDay(expanded ? null : day.id);
                     }}
                     aria-expanded={expanded}
-                    className="flex w-full items-center gap-3 p-4 text-start"
+                    className="flex w-full items-center gap-4 p-4 text-start"
                   >
-                    <span className="num grid size-9 shrink-0 place-items-center rounded-xl bg-surface-2 text-[14px] font-bold text-muted">
+                    <span
+                      className={`num grid size-12 shrink-0 place-items-center rounded-[var(--radius-sm)] ${TINT_BG[tintFor(day.id, dayIndex)]} text-[16px] font-semibold`}
+                    >
                       {dayIndex + 1}
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[15px] font-semibold">{day.name}</span>
-                      <span className="mt-0.5 block text-[12px] text-muted">
-                        <span className="num">{day.blocks.length}</span> תרגילים ·{' '}
-                        <span className="num">{estimateMinutes(day)}</span> דק׳
+                      <span className="block truncate text-[16px] font-medium">{day.name}</span>
+                      <span className="num mt-0.5 block text-[12.5px] text-muted">
+                        {day.blocks.length} תרגילים · {estimateMinutes(day)} דק׳
                       </span>
                     </span>
                     <motion.span animate={{ rotate: expanded ? 180 : 0 }} className="text-faint">
-                      <CaretDown size={16} weight="bold" />
+                      <CaretDown size={18} weight="bold" />
                     </motion.span>
                   </button>
 
@@ -222,21 +240,21 @@ export default function TraineePage({ params }: { params: Promise<{ id: string }
                                   key={blockItem.exerciseId}
                                   value={blockItem}
                                   whileDrag={{ scale: 1.03, boxShadow: 'var(--shadow-lift)' }}
-                                  className="flex items-center gap-2 rounded-[var(--radius-field)] border border-line bg-surface-2 p-2"
+                                  className="flex items-center gap-2.5 rounded-[var(--radius-md)] bg-canvas p-2.5"
                                 >
-                                  <span className="cursor-grab touch-none px-1 text-faint active:cursor-grabbing">
-                                    <DotsSixVertical size={17} weight="bold" />
+                                  <span className="cursor-grab touch-none px-0.5 text-faint active:cursor-grabbing">
+                                    <DotsSixVertical size={18} weight="bold" />
                                   </span>
                                   <ExerciseMedia
                                     exercise={exercise}
-                                    className="size-11 shrink-0 rounded-lg"
+                                    className="size-12 shrink-0 rounded-[var(--radius-xs)]"
                                   />
                                   <button
                                     type="button"
                                     onClick={() => setEditing({ dayId: day.id, index })}
                                     className="min-w-0 flex-1 text-start"
                                   >
-                                    <span className="line-clamp-1 text-[13px] font-semibold">
+                                    <span className="line-clamp-1 text-[14px] font-medium">
                                       {exercise.he}
                                     </span>
                                     <span className="mt-0.5 block text-[12px] text-muted">
@@ -249,9 +267,11 @@ export default function TraineePage({ params }: { params: Promise<{ id: string }
                                   <IconButton
                                     label="הסרת תרגיל"
                                     onClick={() => removeBlock(day.id, index)}
-                                    className="size-9 border-transparent bg-transparent text-faint"
+                                    tone="bare"
+                                    size="sm"
+                                    className="text-faint"
                                   >
-                                    <Trash size={15} weight="bold" />
+                                    <Trash size={16} weight="bold" />
                                   </IconButton>
                                 </Reorder.Item>
                               );
@@ -261,7 +281,7 @@ export default function TraineePage({ params }: { params: Promise<{ id: string }
                           <button
                             type="button"
                             onClick={() => setPickerDay(day.id)}
-                            className="mt-2 flex h-11 w-full items-center justify-center gap-1.5 rounded-[var(--radius-field)] border border-dashed border-line text-[14px] font-semibold text-muted"
+                            className="mt-1 flex h-13 w-full items-center justify-center gap-1.5 rounded-[var(--radius-md)] border-[1.5px] border-dashed border-line-strong text-[14.5px] font-medium text-muted"
                           >
                             <Plus size={15} weight="bold" />
                             הוספת תרגיל ל{day.name}
@@ -275,9 +295,10 @@ export default function TraineePage({ params }: { params: Promise<{ id: string }
             })}
           </ul>
 
-          <div className="mt-6 flex flex-col gap-2.5">
+          <div className="mt-8 flex flex-col gap-3">
             <Button
               block
+              size="lg"
               onClick={() => {
                 haptic('success');
                 upsertTrainee({ ...trainee, lastActive: Date.now() });
@@ -293,7 +314,8 @@ export default function TraineePage({ params }: { params: Promise<{ id: string }
             </Button>
             <Button
               block
-              variant="secondary"
+              size="lg"
+              variant="card"
               onClick={() => {
                 setProgram({
                   ...program,
@@ -312,14 +334,14 @@ export default function TraineePage({ params }: { params: Promise<{ id: string }
               <Eye size={17} weight="bold" />
               תצוגה מקדימה כמתאמן
             </Button>
-            <Button block variant="danger" onClick={() => setConfirmRemove(true)}>
+            <Button block size="lg" variant="danger" onClick={() => setConfirmRemove(true)}>
               הסרת המתאמן
             </Button>
           </div>
         </>
       ) : (
         <EmptyState
-          icon={<Plus size={26} />}
+          icon={<Plus size={30} />}
           title="אין מסלול למתאמן הזה"
           body="בנו לו מסלול כדי להתחיל לעקוב אחרי ההתקדמות."
         />
@@ -361,13 +383,13 @@ export default function TraineePage({ params }: { params: Promise<{ id: string }
           editingBlock ? byId.get(editingBlock.exerciseId)?.he : undefined
         }
         footer={
-          <Button block onClick={() => setEditing(null)}>
+          <Button block size="lg" onClick={() => setEditing(null)}>
             סיום
           </Button>
         }
       >
         {editing && editingBlock && (
-          <div className="flex flex-col gap-4 py-2">
+          <div className="flex flex-col gap-5 py-2">
             <EditRow label="מספר סטים">
               <Stepper
                 value={editingBlock.sets}
@@ -378,17 +400,17 @@ export default function TraineePage({ params }: { params: Promise<{ id: string }
             </EditRow>
 
             <div className="flex flex-col gap-2">
-              <span className="text-[14px] font-semibold">טווח חזרות</span>
-              <div className="flex flex-wrap gap-2">
+              <span className="px-1 text-[15px] font-medium">טווח חזרות</span>
+              <div className="flex flex-wrap gap-2.5">
                 {['5', '6-8', '8-10', '10-12', '12-15', '15-20', '30-45 שניות'].map((reps) => (
                   <button
                     key={reps}
                     type="button"
                     onClick={() => patchBlock(editing.dayId, editing.index, { reps })}
-                    className={`h-9 rounded-full border px-3.5 text-[14px] font-semibold transition-colors ${
+                    className={`h-11 rounded-full px-4.5 text-[14px] font-medium transition-colors ${
                       editingBlock.reps === reps
-                        ? 'border-accent-line bg-accent-wash text-accent'
-                        : 'border-line bg-surface-2 text-muted'
+                        ? 'bg-ink text-white'
+                        : 'bg-card text-ink-soft shadow-[var(--shadow-soft)]'
                     }`}
                   >
                     {reps}
@@ -425,6 +447,7 @@ export default function TraineePage({ params }: { params: Promise<{ id: string }
         footer={
           <Button
             block
+            size="lg"
             onClick={() => {
               upsertTrainee({ ...trainee, note: noteDraft });
               if (program) updateProgram({ ...program, note: noteDraft });
@@ -454,12 +477,13 @@ export default function TraineePage({ params }: { params: Promise<{ id: string }
         title={`להסיר את ${trainee.name}?`}
         subtitle="המסלול וההערות שלו יימחקו"
         footer={
-          <div className="flex gap-2.5">
-            <Button variant="secondary" className="flex-1" onClick={() => setConfirmRemove(false)}>
+          <div className="flex gap-3">
+            <Button variant="card" size="lg" className="flex-1" onClick={() => setConfirmRemove(false)}>
               ביטול
             </Button>
             <Button
               variant="danger"
+              size="lg"
               className="flex-1"
               onClick={() => {
                 removeTrainee(trainee.id);
@@ -481,8 +505,8 @@ export default function TraineePage({ params }: { params: Promise<{ id: string }
 
 function EditRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-[var(--radius-field)] border border-line bg-surface px-4 py-3">
-      <span className="text-[14px] font-semibold">{label}</span>
+    <div className="flex items-center justify-between gap-3 rounded-[var(--radius-md)] bg-card px-5 py-3.5 shadow-[var(--shadow-soft)]">
+      <span className="text-[15px] font-medium">{label}</span>
       {children}
     </div>
   );

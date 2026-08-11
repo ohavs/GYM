@@ -1,10 +1,63 @@
 'use client';
 
 import { useEffect, useId, useRef, useState } from 'react';
-import { motion, useReducedMotion } from 'motion/react';
-import { Check, Minus, Plus, MagnifyingGlass, X } from '@phosphor-icons/react/dist/ssr';
+import { motion, useReducedMotion, useSpring, useTransform } from 'motion/react';
+import { Check, MagnifyingGlass, Minus, Plus, X } from '@phosphor-icons/react/dist/ssr';
 import { haptic } from '@/lib/haptics';
 import { clamp } from '@/lib/format';
+
+/* ------------------------------------------------------------------ */
+/* Tint surfaces                                                       */
+/* ------------------------------------------------------------------ */
+
+export const TINTS = ['peach', 'mint', 'lilac', 'butter', 'sky', 'blush'] as const;
+export type Tint = (typeof TINTS)[number];
+
+export const TINT_BG: Record<Tint, string> = {
+  peach: 'bg-peach',
+  mint: 'bg-mint',
+  lilac: 'bg-lilac',
+  butter: 'bg-butter',
+  sky: 'bg-sky',
+  blush: 'bg-blush',
+};
+
+/** Stable tint per key, so a given exercise always sits on the same colour. */
+export function tintFor(key: string, offset = 0): Tint {
+  let hash = 0;
+  for (let i = 0; i < key.length; i++) hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
+  return TINTS[(hash + offset) % TINTS.length];
+}
+
+/* ------------------------------------------------------------------ */
+/* Pill                                                                */
+/* ------------------------------------------------------------------ */
+
+/** Small label pill. The mockup floats these over artwork and inside cards. */
+export function Pill({
+  children,
+  tone = 'card',
+  className = '',
+}: {
+  children: React.ReactNode;
+  tone?: 'card' | 'ink' | 'mint' | 'peach' | 'butter';
+  className?: string;
+}) {
+  const tones = {
+    card: 'bg-card text-ink',
+    ink: 'bg-ink text-white',
+    mint: 'bg-mint text-ink',
+    peach: 'bg-peach text-ink',
+    butter: 'bg-butter text-ink',
+  };
+  return (
+    <span
+      className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-[12px] font-medium ${tones[tone]} ${className}`}
+    >
+      {children}
+    </span>
+  );
+}
 
 /* ------------------------------------------------------------------ */
 /* Chip                                                                */
@@ -24,24 +77,22 @@ export function Chip({
   return (
     <motion.button
       type="button"
-      whileTap={{ scale: 0.94 }}
-      transition={{ type: 'spring', stiffness: 520, damping: 30 }}
+      whileTap={{ scale: 0.93 }}
+      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
       onClick={() => {
         haptic('select');
         onClick?.();
       }}
       aria-pressed={active}
       className={[
-        'inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-[14px] font-semibold',
-        'border transition-colors duration-150',
-        active
-          ? 'border-accent-line bg-accent-wash text-accent'
-          : 'border-line bg-surface-2 text-muted',
+        'inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full px-4.5 text-[14px] font-medium',
+        'transition-colors duration-150',
+        active ? 'bg-ink text-white' : 'bg-card text-ink-soft shadow-[var(--shadow-soft)]',
       ].join(' ')}
     >
       {children}
       {count !== undefined && (
-        <span className={`num text-[11px] ${active ? 'text-accent/70' : 'text-faint'}`}>
+        <span className={`digits text-[11px] ${active ? 'text-white/55' : 'text-faint'}`}>
           {count}
         </span>
       )}
@@ -68,8 +119,8 @@ export function Segmented<T extends string>({
   return (
     <div
       role="tablist"
-      className={`grid gap-1 rounded-full border border-line bg-surface-2 p-1 ${
-        size === 'sm' ? 'h-10' : 'h-12'
+      className={`grid gap-1 rounded-full bg-card p-1.5 shadow-[var(--shadow-soft)] ${
+        size === 'sm' ? 'h-12' : 'h-14'
       }`}
       style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}
     >
@@ -85,16 +136,16 @@ export function Segmented<T extends string>({
               haptic('select');
               onChange(option.value);
             }}
-            className="relative rounded-full text-[14px] font-semibold"
+            className="relative rounded-full text-[14px] font-medium"
           >
             {active && (
               <motion.span
                 layoutId={`seg-${id}`}
-                transition={{ type: 'spring', stiffness: 480, damping: 38 }}
-                className="absolute inset-0 rounded-full bg-accent"
+                transition={{ type: 'spring', stiffness: 460, damping: 38 }}
+                className="absolute inset-0 rounded-full bg-ink"
               />
             )}
-            <span className={`relative z-10 ${active ? 'text-accent-ink' : 'text-muted'}`}>
+            <span className={`relative z-10 ${active ? 'text-white' : 'text-muted'}`}>
               {option.label}
             </span>
           </button>
@@ -105,7 +156,7 @@ export function Segmented<T extends string>({
 }
 
 /* ------------------------------------------------------------------ */
-/* Option rows (radio and multi-select)                                */
+/* Option card                                                         */
 /* ------------------------------------------------------------------ */
 
 export function OptionCard({
@@ -114,51 +165,60 @@ export function OptionCard({
   title,
   description,
   icon,
+  tint = 'lilac',
 }: {
   selected: boolean;
   onSelect: () => void;
   title: string;
   description?: string;
   icon?: React.ReactNode;
+  tint?: Tint;
 }) {
   return (
     <motion.button
       type="button"
       whileTap={{ scale: 0.985 }}
-      transition={{ type: 'spring', stiffness: 480, damping: 32 }}
+      transition={{ type: 'spring', stiffness: 460, damping: 32 }}
       onClick={() => {
         haptic('select');
         onSelect();
       }}
       aria-pressed={selected}
       className={[
-        'flex w-full items-center gap-3.5 rounded-[var(--radius-card)] border p-4 text-start',
-        'transition-colors duration-150',
-        selected ? 'border-accent-line bg-accent-wash' : 'border-line bg-surface',
+        'flex w-full items-center gap-4 rounded-[var(--radius-lg)] p-4 text-start',
+        'transition-colors duration-200',
+        selected ? 'bg-ink text-white' : 'bg-card text-ink shadow-[var(--shadow-soft)]',
       ].join(' ')}
     >
       {icon && (
         <span
-          className={`grid size-11 shrink-0 place-items-center rounded-2xl ${
-            selected ? 'bg-accent text-accent-ink' : 'bg-surface-2 text-muted'
+          className={`grid size-13 shrink-0 place-items-center rounded-[var(--radius-sm)] ${
+            selected ? 'bg-white/12 text-white' : `${TINT_BG[tint]} text-ink`
           }`}
         >
           {icon}
         </span>
       )}
       <span className="min-w-0 flex-1">
-        <span className="block truncate font-semibold">{title}</span>
+        <span className="block truncate text-[16px] font-medium">{title}</span>
         {description && (
-          <span className="mt-0.5 block truncate text-[13px] text-muted">{description}</span>
+          <span
+            className={`mt-0.5 block truncate text-[13px] ${selected ? 'text-white/60' : 'text-muted'}`}
+          >
+            {description}
+          </span>
         )}
       </span>
-      <span
-        className={`grid size-6 shrink-0 place-items-center rounded-full border-2 transition-colors ${
-          selected ? 'border-accent bg-accent text-accent-ink' : 'border-line'
+      <motion.span
+        initial={false}
+        animate={{ scale: selected ? 1 : 0.8, opacity: selected ? 1 : 0.35 }}
+        transition={{ type: 'spring', stiffness: 500, damping: 26 }}
+        className={`grid size-7 shrink-0 place-items-center rounded-full ${
+          selected ? 'bg-white text-ink' : 'bg-canvas text-transparent'
         }`}
       >
-        {selected && <Check size={13} weight="bold" />}
-      </span>
+        <Check size={14} weight="bold" />
+      </motion.span>
     </motion.button>
   );
 }
@@ -186,14 +246,14 @@ export function Switch({
         haptic('select');
         onChange(!checked);
       }}
-      className={`relative h-7 w-12 shrink-0 rounded-full transition-colors duration-200 ${
-        checked ? 'bg-accent' : 'bg-surface-3'
+      className={`relative h-8 w-14 shrink-0 rounded-full transition-colors duration-250 ${
+        checked ? 'bg-ink' : 'bg-line-strong'
       }`}
     >
       <motion.span
         layout
-        transition={{ type: 'spring', stiffness: 620, damping: 34 }}
-        className="absolute top-1 size-5 rounded-full bg-white shadow-sm"
+        transition={{ type: 'spring', stiffness: 600, damping: 34 }}
+        className="absolute top-1 size-6 rounded-full bg-white shadow-sm"
         style={checked ? { left: 4 } : { right: 4 }}
       />
     </button>
@@ -227,8 +287,8 @@ export function Field({
 }) {
   const id = useId();
   return (
-    <div className="flex flex-col gap-2">
-      <label htmlFor={id} className="text-[14px] font-semibold text-text">
+    <div className="flex flex-col gap-2.5">
+      <label htmlFor={id} className="px-1 text-[14px] font-medium text-ink-soft">
         {label}
       </label>
       <input
@@ -240,24 +300,22 @@ export function Field({
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
         className={[
-          'h-13 w-full rounded-[var(--radius-field)] border bg-surface px-4 py-3.5',
-          'text-[16px] text-text placeholder:text-faint',
-          'outline-none transition-colors duration-150',
-          error ? 'border-bad' : 'border-line focus:border-accent-line',
+          'h-15 w-full rounded-[var(--radius-md)] bg-card px-5 text-[17px] font-medium',
+          'text-ink placeholder:font-normal placeholder:text-faint',
+          'outline-none transition-shadow duration-200',
+          error
+            ? 'shadow-[0_0_0_2px_var(--red)]'
+            : 'shadow-[var(--shadow-soft)] focus:shadow-[0_0_0_2px_var(--ink)]',
         ].join(' ')}
       />
       {error ? (
-        <p className="text-[13px] text-bad">{error}</p>
+        <p className="px-1 text-[13px] text-red">{error}</p>
       ) : hint ? (
-        <p className="text-[13px] text-muted">{hint}</p>
+        <p className="px-1 text-[13px] text-muted">{hint}</p>
       ) : null}
     </div>
   );
 }
-
-/* ------------------------------------------------------------------ */
-/* Search field                                                        */
-/* ------------------------------------------------------------------ */
 
 export function SearchField({
   value,
@@ -271,9 +329,9 @@ export function SearchField({
   return (
     <div className="relative flex items-center">
       <MagnifyingGlass
-        size={18}
+        size={19}
         weight="bold"
-        className="pointer-events-none absolute start-4 text-faint"
+        className="pointer-events-none absolute start-5 text-faint"
       />
       <input
         type="search"
@@ -281,16 +339,16 @@ export function SearchField({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         aria-label={placeholder}
-        className="h-12 w-full rounded-full border border-line bg-surface ps-11 pe-11 text-[16px] text-text outline-none transition-colors placeholder:text-faint focus:border-accent-line [&::-webkit-search-cancel-button]:hidden"
+        className="h-14 w-full rounded-full bg-card ps-13 pe-13 text-[15px] text-ink shadow-[var(--shadow-soft)] outline-none transition-shadow placeholder:text-faint focus:shadow-[0_0_0_2px_var(--ink)] [&::-webkit-search-cancel-button]:hidden"
       />
       {value && (
         <button
           type="button"
           aria-label="ניקוי חיפוש"
           onClick={() => onChange('')}
-          className="absolute end-3 grid size-7 place-items-center rounded-full bg-surface-3 text-muted"
+          className="absolute end-3.5 grid size-8 place-items-center rounded-full bg-canvas text-muted"
         >
-          <X size={13} weight="bold" />
+          <X size={14} weight="bold" />
         </button>
       )}
     </div>
@@ -341,7 +399,7 @@ export function Stepper({
   const shown = draft ?? (Number.isInteger(value) ? String(value) : value.toFixed(1));
 
   return (
-    <div className={`flex items-center ${compact ? 'gap-0.5' : 'gap-1'}`}>
+    <div className={`flex items-center ${compact ? 'gap-1' : 'gap-1.5'}`}>
       <StepButton label="הפחתה" compact={compact} onPress={() => bump(-1)} onHold={() => bump(-1)}>
         <Minus size={compact ? 13 : 15} weight="bold" />
       </StepButton>
@@ -357,8 +415,8 @@ export function Stepper({
         onChange={(e) => setDraft(e.target.value.replace(/[^\d.,]/g, ''))}
         onBlur={commit}
         onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
-        className={`num rounded-lg bg-transparent text-center font-bold text-text outline-none focus:bg-surface-3 ${
-          compact ? 'w-11 text-[16px]' : 'w-14 text-[17px]'
+        className={`num rounded-xl bg-transparent text-center font-semibold text-ink outline-none focus:bg-canvas ${
+          compact ? 'w-11 text-[17px]' : 'w-16 text-[19px]'
         }`}
       />
       <StepButton label="הוספה" compact={compact} onPress={() => bump(1)} onHold={() => bump(1)}>
@@ -408,8 +466,8 @@ function StepButton({
       onPointerUp={clear}
       onPointerLeave={clear}
       onPointerCancel={clear}
-      className={`grid shrink-0 place-items-center rounded-full bg-surface-3 text-text ${
-        compact ? 'size-8' : 'size-9'
+      className={`grid shrink-0 place-items-center rounded-full bg-canvas text-ink-soft ${
+        compact ? 'size-9' : 'size-11'
       }`}
     >
       {children}
@@ -441,24 +499,24 @@ export function Slider({
   const pct = ((value - min) / (max - min)) * 100;
   const id = useId();
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-4">
       <div className="flex items-baseline justify-between">
-        <label htmlFor={id} className="text-[14px] font-semibold">
+        <label htmlFor={id} className="text-[15px] font-medium">
           {label}
         </label>
-        <span className="num text-[15px] font-bold text-accent">
+        <span className="num text-[28px] font-semibold leading-none">
           {format ? format(value) : value}
         </span>
       </div>
-      <div className="relative h-9">
-        <div className="absolute inset-x-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-surface-3" />
+      <div className="relative h-11">
+        <div className="absolute inset-x-0 top-1/2 h-2.5 -translate-y-1/2 rounded-full bg-canvas" />
         <div
-          className="absolute top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-accent"
+          className="absolute top-1/2 h-2.5 -translate-y-1/2 rounded-full bg-ink"
           style={{ insetInlineStart: 0, width: `${pct}%` }}
         />
         <span
-          className="pointer-events-none absolute top-1/2 size-6 -translate-y-1/2 rounded-full border-[3px] border-accent bg-bg shadow-sm"
-          style={{ insetInlineStart: `calc(${pct}% - 12px)` }}
+          className="pointer-events-none absolute top-1/2 size-8 -translate-y-1/2 rounded-full border-[5px] border-ink bg-white shadow-[var(--shadow-soft)]"
+          style={{ insetInlineStart: `calc(${pct}% - 16px)` }}
         />
         <input
           id={id}
@@ -484,31 +542,35 @@ export function Slider({
 
 export function ProgressRing({
   progress,
-  size = 72,
-  stroke = 7,
+  size = 76,
+  stroke = 8,
   children,
-  tone = 'accent',
+  tone = 'ink',
 }: {
   progress: number;
   size?: number;
   stroke?: number;
   children?: React.ReactNode;
-  tone?: 'accent' | 'ok';
+  tone?: 'ink' | 'green' | 'white';
 }) {
   const reduce = useReducedMotion();
   const r = (size - stroke) / 2;
   const circumference = 2 * Math.PI * r;
   const clamped = clamp(progress, 0, 1);
+  const colors = { ink: 'var(--ink)', green: 'var(--green)', white: '#ffffff' };
 
   return (
-    <div className="relative grid shrink-0 place-items-center" style={{ width: size, height: size }}>
+    <div
+      className="relative grid shrink-0 place-items-center"
+      style={{ width: size, height: size }}
+    >
       <svg width={size} height={size} className="-rotate-90" aria-hidden>
         <circle
           cx={size / 2}
           cy={size / 2}
           r={r}
           fill="none"
-          stroke="var(--surface-3)"
+          stroke={tone === 'white' ? 'rgba(255,255,255,0.22)' : 'var(--line)'}
           strokeWidth={stroke}
         />
         <motion.circle
@@ -516,13 +578,13 @@ export function ProgressRing({
           cy={size / 2}
           r={r}
           fill="none"
-          stroke={tone === 'ok' ? 'var(--ok)' : 'var(--accent)'}
+          stroke={colors[tone]}
           strokeWidth={stroke}
           strokeLinecap="round"
           strokeDasharray={circumference}
           initial={reduce ? false : { strokeDashoffset: circumference }}
           animate={{ strokeDashoffset: circumference * (1 - clamped) }}
-          transition={{ type: 'spring', stiffness: 90, damping: 20 }}
+          transition={{ type: 'spring', stiffness: 80, damping: 20 }}
         />
       </svg>
       {children && <div className="absolute inset-0 grid place-items-center">{children}</div>}
@@ -531,71 +593,95 @@ export function ProgressRing({
 }
 
 /* ------------------------------------------------------------------ */
-/* Skeleton                                                            */
+/* Counting number                                                     */
+/* ------------------------------------------------------------------ */
+
+/** Large metrics roll up on mount, so a number reads as something earned. */
+export function CountUp({
+  value,
+  decimals = 0,
+  className = '',
+}: {
+  value: number;
+  decimals?: number;
+  className?: string;
+}) {
+  const reduce = useReducedMotion();
+  const spring = useSpring(reduce ? value : 0, { stiffness: 60, damping: 18 });
+  const text = useTransform(spring, (v) =>
+    v.toLocaleString('he-IL', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }),
+  );
+
+  useEffect(() => {
+    spring.set(value);
+  }, [value, spring]);
+
+  return <motion.span className={`num ${className}`}>{text}</motion.span>;
+}
+
+/* ------------------------------------------------------------------ */
+/* Skeleton and empty state                                            */
 /* ------------------------------------------------------------------ */
 
 export function Skeleton({ className = '' }: { className?: string }) {
   return (
-    <div className={`relative overflow-hidden rounded-xl bg-surface-2 ${className}`}>
+    <div className={`relative overflow-hidden rounded-[var(--radius-md)] bg-card ${className}`}>
       <motion.div
-        className="absolute inset-0 bg-gradient-to-l from-transparent via-white/[0.045] to-transparent"
+        className="absolute inset-0 bg-gradient-to-l from-transparent via-canvas to-transparent"
         animate={{ x: ['-100%', '100%'] }}
-        transition={{ duration: 1.4, repeat: Infinity, ease: 'linear' }}
+        transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
       />
     </div>
   );
 }
-
-/* ------------------------------------------------------------------ */
-/* Empty state                                                         */
-/* ------------------------------------------------------------------ */
 
 export function EmptyState({
   icon,
   title,
   body,
   action,
+  tint = 'lilac',
 }: {
   icon: React.ReactNode;
   title: string;
   body: string;
   action?: React.ReactNode;
+  tint?: Tint;
 }) {
   return (
-    <div className="flex flex-col items-center gap-3 px-6 py-14 text-center">
-      <span className="grid size-16 place-items-center rounded-3xl border border-line bg-surface-2 text-faint">
+    <div className="flex flex-col items-center gap-4 px-6 py-14 text-center">
+      <motion.span
+        initial={{ scale: 0.85, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+        className={`grid size-20 place-items-center rounded-[var(--radius-lg)] ${TINT_BG[tint]} text-ink`}
+      >
         {icon}
-      </span>
-      <h3 className="mt-1 text-[17px]">{title}</h3>
-      <p className="max-w-[34ch] text-[14px] leading-relaxed text-muted">{body}</p>
-      {action && <div className="mt-2">{action}</div>}
+      </motion.span>
+      <h3 className="mt-1 text-[20px]">{title}</h3>
+      <p className="max-w-[32ch] text-[14px] leading-relaxed text-muted">{body}</p>
+      {action && <div className="mt-1">{action}</div>}
     </div>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/* Stat tile                                                           */
+/* Stat                                                                */
 /* ------------------------------------------------------------------ */
 
 export function Stat({
   value,
   label,
-  tone = 'default',
   numeric = false,
 }: {
   value: string;
   label: string;
-  tone?: 'default' | 'accent';
   /** Set when the value is digits and separators only, with no Hebrew in it. */
   numeric?: boolean;
 }) {
   return (
-    <div className="flex flex-col gap-0.5">
-      <span
-        className={`${numeric ? 'digits' : 'num'} text-[22px] font-bold leading-none ${
-          tone === 'accent' ? 'text-accent' : 'text-text'
-        }`}
-      >
+    <div className="flex flex-col gap-1">
+      <span className={`${numeric ? 'digits' : 'num'} text-[26px] font-semibold leading-none`}>
         {value}
       </span>
       <span className="text-[12px] text-muted">{label}</span>

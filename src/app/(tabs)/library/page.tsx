@@ -4,7 +4,7 @@ import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion } from 'motion/react';
 import { BookmarkSimple, FunnelSimple, MagnifyingGlass, X } from '@phosphor-icons/react/dist/ssr';
-import { Screen } from '@/components/layout/screen';
+import { Rise, Screen } from '@/components/layout/screen';
 import { Button, IconButton } from '@/components/ui/button';
 import { Chip, EmptyState, SearchField, useDebounced } from '@/components/ui/controls';
 import { Sheet } from '@/components/ui/sheet';
@@ -75,16 +75,18 @@ function Library() {
 
   return (
     <Screen>
-      <header className="pt-4 pb-4">
-        <h1 className="text-[26px] leading-tight">מאגר התרגילים</h1>
-        <p className="mt-1 text-[14px] text-muted">
-          <span className="font-semibold text-text">{meta.total.toLocaleString('he-IL')}</span> תרגילים עם הדגמה
-          מונפשת, שריר מטרה והוראות ביצוע.
-        </p>
-      </header>
+      <Rise>
+        <header className="pt-4 pb-6">
+          <h1 className="text-[32px] leading-[1.08]">מאגר התרגילים</h1>
+          <p className="mt-2 text-[15px] text-muted">
+            <span className="font-medium text-ink">{meta.total.toLocaleString('he-IL')}</span>{' '}
+            תרגילים עם הדגמה מונפשת, שריר מטרה והוראות ביצוע.
+          </p>
+        </header>
+      </Rise>
 
-      <div className="sticky top-0 z-20 -mx-4 bg-bg/92 px-4 pb-3 pt-1 backdrop-blur-xl">
-        <div className="flex gap-2">
+      <div className="sticky top-0 z-20 -mx-5 bg-canvas/92 px-5 pb-4 pt-1 backdrop-blur-xl">
+        <div className="flex gap-2.5">
           <div className="flex-1">
             <SearchField
               value={filters.q}
@@ -96,20 +98,20 @@ function Library() {
             <IconButton
               label="סינון"
               onClick={() => setFiltersOpen(true)}
-              className="size-12"
-              tone={active ? 'accent' : 'surface'}
+              className="size-14"
+              tone={active ? 'ink' : 'card'}
             >
               <FunnelSimple size={19} weight="bold" />
             </IconButton>
             {active > 0 && (
-              <span className="digits pointer-events-none absolute -top-1 -end-1 grid size-5 place-items-center rounded-full bg-text text-[10px] font-bold text-bg">
+              <span className="digits pointer-events-none absolute -top-1 -end-1 grid size-5.5 place-items-center rounded-full bg-red text-[10px] font-semibold text-white">
                 {active}
               </span>
             )}
           </div>
         </div>
 
-        <div className="no-scrollbar -mx-4 mt-2.5 flex gap-2 overflow-x-auto px-4">
+        <div className="no-scrollbar -mx-5 mt-3 flex gap-2.5 overflow-x-auto px-5">
           <Chip active={onlySaved} onClick={() => setOnlySaved((v) => !v)} count={saved.length}>
             <BookmarkSimple size={14} weight={onlySaved ? 'fill' : 'bold'} />
             שמורים
@@ -134,18 +136,19 @@ function Library() {
         </div>
       </div>
 
-      <p className="pb-3 text-[13px] text-faint">
-        <span className="font-semibold text-muted">{results.length.toLocaleString('he-IL')}</span> תוצאות
+      <p className="px-1 pb-4 text-[13px] text-faint">
+        <span className="font-medium text-muted">{results.length.toLocaleString('he-IL')}</span>{' '}
+        תוצאות
       </p>
 
       {results.length === 0 ? (
         <EmptyState
-          icon={<MagnifyingGlass size={26} />}
+          icon={<MagnifyingGlass size={30} />}
           title="לא מצאנו תרגילים כאלה"
           body="נסו מונח אחר, או הסירו חלק מהסינונים כדי לפתוח את החיפוש."
           action={
             <Button
-              variant="secondary"
+              size="lg"
               onClick={() => {
                 setFilters(emptyFilters);
                 setOnlySaved(false);
@@ -157,7 +160,7 @@ function Library() {
         />
       ) : (
         <>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3.5">
             {results.slice(0, visible).map((exercise, i) => (
               <ExerciseCard
                 key={exercise.id}
@@ -218,21 +221,22 @@ function FilterSheet({
       title="סינון"
       subtitle="אפשר לבחור כמה אפשרויות יחד"
       footer={
-        <div className="flex gap-2.5">
+        <div className="flex gap-3">
           <Button
-            variant="secondary"
+            variant="card"
+            size="lg"
             className="flex-1"
             onClick={() => onChange({ ...emptyFilters, q: filters.q })}
           >
             ניקוי
           </Button>
-          <Button className="flex-[2]" onClick={onClose}>
+          <Button size="lg" className="flex-[2]" onClick={onClose}>
             הצגת <span className="digits">{resultCount}</span> תוצאות
           </Button>
         </div>
       }
     >
-      <div className="flex flex-col gap-6 py-2">
+      <div className="flex flex-col gap-7 py-2">
         <FilterGroup title="אזור בגוף">
           {meta.bodyParts.map((bp) => (
             <Chip
@@ -287,7 +291,7 @@ function FilterSheet({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             onClick={() => onChange({ ...emptyFilters, q: filters.q })}
-            className="flex items-center justify-center gap-1.5 text-[14px] font-semibold text-muted"
+            className="flex items-center justify-center gap-1.5 text-[14px] font-medium text-muted"
           >
             <X size={14} weight="bold" />
             ניקוי כל הסינונים
@@ -301,8 +305,8 @@ function FilterSheet({
 function FilterGroup({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <h3 className="mb-2.5 text-[15px]">{title}</h3>
-      <div className="flex flex-wrap gap-2">{children}</div>
+      <h3 className="mb-3 px-1 text-[17px]">{title}</h3>
+      <div className="flex flex-wrap gap-2.5">{children}</div>
     </section>
   );
 }

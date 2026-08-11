@@ -4,11 +4,15 @@ import { motion } from 'motion/react';
 import { BookmarkSimple } from '@phosphor-icons/react/dist/ssr';
 import { ExerciseMedia } from './exercise-media';
 import { useReadyCatalog } from '@/components/app-providers';
+import { tintFor } from '@/components/ui/controls';
 import { useStore } from '@/lib/store';
 import { haptic } from '@/lib/haptics';
 import type { Exercise } from '@/lib/types';
-import { LEVEL_LABEL } from '@/lib/program';
 
+/**
+ * Library tile. The artwork gets most of the height, the label a calm strip
+ * beneath it, and everything else floats on the art as small pills.
+ */
 export function ExerciseCard({
   exercise,
   onOpen,
@@ -27,26 +31,33 @@ export function ExerciseCard({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.32, delay: Math.min(index, 8) * 0.025, ease: [0.22, 1, 0.36, 1] }}
+      transition={{
+        duration: 0.42,
+        delay: Math.min(index, 8) * 0.035,
+        ease: [0.22, 1, 0.36, 1],
+      }}
       className="relative"
     >
       <motion.button
         type="button"
-        whileTap={{ scale: 0.975 }}
-        transition={{ type: 'spring', stiffness: 480, damping: 30 }}
+        whileTap={{ scale: 0.97 }}
+        transition={{ type: 'spring', stiffness: 460, damping: 30 }}
         onClick={() => onOpen(exercise)}
-        className="flex w-full flex-col overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface text-start"
+        className="flex w-full flex-col overflow-hidden rounded-[var(--radius-lg)] bg-card text-start shadow-[var(--shadow-soft)]"
       >
-        <ExerciseMedia exercise={exercise} className="aspect-square w-full" />
-        <span className="flex min-h-[86px] flex-col gap-1.5 p-3">
-          <span className="line-clamp-2 text-[14px] font-semibold leading-snug">
+        <ExerciseMedia
+          exercise={exercise}
+          tint={tintFor(exercise.id)}
+          className="aspect-[4/3.4] w-full"
+        />
+        <span className="flex min-h-[84px] flex-col gap-1.5 p-4">
+          <span className="line-clamp-2 text-[15px] font-medium leading-snug">
             {exercise.he}
           </span>
-          <span className="mt-auto flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[11px] text-faint">
-            <span className="rounded-full bg-surface-2 px-2 py-0.5 text-muted">{target}</span>
-            <span>{equipment}</span>
+          <span className="mt-auto text-[12px] text-faint">
+            {target} · {equipment}
           </span>
         </span>
       </motion.button>
@@ -59,53 +70,103 @@ export function ExerciseCard({
           haptic('select');
           toggleSaved(exercise.id);
         }}
-        className={`absolute end-2 top-2 grid size-8 place-items-center rounded-full transition-colors ${
-          saved ? 'bg-accent text-accent-ink' : 'media-chip'
+        className={`absolute end-3 top-3 grid size-9 place-items-center rounded-full transition-colors ${
+          saved ? 'bg-ink text-white' : 'bg-card/85 text-ink backdrop-blur-sm'
         }`}
       >
-        <BookmarkSimple size={15} weight={saved ? 'fill' : 'bold'} />
+        <BookmarkSimple size={15} weight={saved ? 'fill' : 'regular'} />
       </button>
-
-      {exercise.lvl === 3 && (
-        <span className="media-chip pointer-events-none absolute start-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-semibold">
-          {LEVEL_LABEL[3]}
-        </span>
-      )}
     </motion.div>
   );
 }
 
-/** Compact row used inside programs and the workout player. */
+/**
+ * Chunky list row. Big square artwork tile on the leading edge, the value or
+ * control on the trailing edge, which is the mockup's workout-list rhythm.
+ */
 export function ExerciseRow({
   exercise,
-  meta,
   detail,
   onClick,
   trailing,
+  tone = 'card',
 }: {
   exercise: Exercise;
-  meta: { targets: Record<string, string> };
   detail?: string;
   onClick?: () => void;
   trailing?: React.ReactNode;
+  tone?: 'card' | 'bare';
 }) {
   const Wrapper = onClick ? motion.button : motion.div;
   return (
     <Wrapper
       type={onClick ? 'button' : undefined}
       whileTap={onClick ? { scale: 0.985 } : undefined}
-      transition={{ type: 'spring', stiffness: 480, damping: 30 }}
+      transition={{ type: 'spring', stiffness: 460, damping: 30 }}
       onClick={onClick}
-      className="flex w-full items-center gap-3 rounded-[var(--radius-field)] border border-line bg-surface p-2.5 text-start"
+      className={`flex w-full items-center gap-4 rounded-[var(--radius-md)] p-3 text-start ${
+        tone === 'card' ? 'bg-card shadow-[var(--shadow-soft)]' : ''
+      }`}
     >
-      <ExerciseMedia exercise={exercise} className="size-14 shrink-0 rounded-xl" />
+      <ExerciseMedia
+        exercise={exercise}
+        tint={tintFor(exercise.id)}
+        className="size-16 shrink-0 rounded-[var(--radius-sm)]"
+      />
       <span className="min-w-0 flex-1">
-        <span className="line-clamp-2 text-[14px] font-semibold leading-snug">{exercise.he}</span>
-        <span className="mt-0.5 block truncate text-[12px] text-muted">
-          {detail ?? meta.targets[exercise.tg] ?? exercise.tg}
-        </span>
+        <span className="line-clamp-2 text-[15px] font-medium leading-snug">{exercise.he}</span>
+        {detail && <span className="mt-1 block truncate text-[12.5px] text-muted">{detail}</span>}
       </span>
       {trailing}
     </Wrapper>
+  );
+}
+
+/** Reusable "focus" hero: big artwork on a tint with floating pills. */
+export function ExerciseHero({
+  exercise,
+  eyebrow,
+  title,
+  pills,
+  action,
+  tint,
+  onClick,
+}: {
+  exercise: Exercise;
+  eyebrow?: string;
+  title: string;
+  pills?: React.ReactNode;
+  action?: React.ReactNode;
+  tint?: ReturnType<typeof tintFor>;
+  onClick?: () => void;
+}) {
+  return (
+    <motion.div
+      whileTap={onClick ? { scale: 0.985 } : undefined}
+      transition={{ type: 'spring', stiffness: 440, damping: 30 }}
+      onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      className={`relative overflow-hidden rounded-[var(--radius-lg)] ${
+        tint ? '' : ''
+      }`}
+    >
+      <ExerciseMedia
+        exercise={exercise}
+        tint={tint ?? tintFor(exercise.id)}
+        className="aspect-[3/2.1] w-full"
+      />
+      <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-4">
+        <div className="flex flex-wrap items-start gap-2">{pills}</div>
+        <div className="flex items-end justify-between gap-3">
+          <div className="min-w-0">
+            {eyebrow && <p className="text-[12px] font-medium text-ink/55">{eyebrow}</p>}
+            <p className="mt-0.5 line-clamp-2 text-[19px] font-semibold leading-tight text-ink">
+              {title}
+            </p>
+          </div>
+          {action && <div className="pointer-events-auto shrink-0">{action}</div>}
+        </div>
+      </div>
+    </motion.div>
   );
 }

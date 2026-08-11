@@ -19,6 +19,14 @@ export function durationLabel(ms: number) {
   return m ? `${h} שע׳ ${m} דק׳` : `${h} שע׳`;
 }
 
+/** Compact duration for stat tiles, where a two-part label would wrap. */
+export function hoursLabel(ms: number) {
+  const minutes = Math.round(ms / 60_000);
+  if (minutes < 60) return `${minutes} דק׳`;
+  const hours = minutes / 60;
+  return `${hours < 10 ? hours.toFixed(1) : Math.round(hours)} שע׳`;
+}
+
 export function volumeLabel(kg: number) {
   if (kg >= 1000) return `${(kg / 1000).toFixed(1)} טון`;
   return `${Math.round(kg)} ק״ג`;

@@ -25,13 +25,13 @@ export function AppGate({ children }: { children: React.ReactNode }) {
 
   if (failed) {
     return (
-      <div className="mx-auto w-full max-w-[560px] px-4 pt-16">
+      <div className="mx-auto w-full max-w-[520px] px-5 pt-16">
         <EmptyState
-          icon={<WifiSlash size={26} />}
+          icon={<WifiSlash size={30} />}
           title="לא הצלחנו לטעון את מאגר התרגילים"
           body="בדקו את החיבור לרשת ונסו שוב. שאר האפליקציה ממשיכה לעבוד מהזיכרון המקומי."
           action={
-            <Button variant="secondary" onClick={retry}>
+            <Button size="lg" onClick={retry}>
               נסו שוב
             </Button>
           }
@@ -51,16 +51,21 @@ function BootSkeleton() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.2 }}
-      className="mx-auto w-full max-w-[560px] px-4 pt-6"
+      className="mx-auto w-full max-w-[520px] px-5 pt-6"
     >
-      <Skeleton className="h-8 w-40" />
-      <Skeleton className="mt-3 h-4 w-56" />
-      <Skeleton className="mt-6 h-44 w-full rounded-[var(--radius-card)]" />
-      <div className="mt-4 grid grid-cols-2 gap-3">
-        <Skeleton className="h-24 rounded-[var(--radius-card)]" />
-        <Skeleton className="h-24 rounded-[var(--radius-card)]" />
+      <div className="flex items-center justify-between">
+        <Skeleton className="size-12 rounded-full" />
+        <Skeleton className="size-12 rounded-full" />
       </div>
-      <Skeleton className="mt-4 h-32 w-full rounded-[var(--radius-card)]" />
+      <Skeleton className="mt-7 h-9 w-52" />
+      <Skeleton className="mt-3 h-5 w-36" />
+      <Skeleton className="mt-7 h-18 w-full rounded-full" />
+      <div className="mt-4 flex flex-col gap-2.5">
+        <Skeleton className="h-20 rounded-[var(--radius-md)]" />
+        <Skeleton className="h-20 rounded-[var(--radius-md)]" />
+        <Skeleton className="h-20 rounded-[var(--radius-md)]" />
+      </div>
+      <Skeleton className="mt-4 h-52 w-full rounded-[var(--radius-lg)]" />
     </motion.div>
   );
 }

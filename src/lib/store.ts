@@ -13,8 +13,6 @@ import type {
   WorkoutLog,
 } from './types';
 
-export type ThemeChoice = 'dark' | 'light' | 'system';
-
 const DEFAULT_PROFILE: Profile = {
   name: '',
   goal: 'muscle',
@@ -28,7 +26,6 @@ const DEFAULT_PROFILE: Profile = {
 
 type State = {
   profile: Profile;
-  theme: ThemeChoice;
   program: Program | null;
   logs: WorkoutLog[];
   active: ActiveWorkout | null;
@@ -38,7 +35,6 @@ type State = {
   lastWeights: Record<string, number>;
 
   setProfile: (patch: Partial<Profile>) => void;
-  setTheme: (theme: ThemeChoice) => void;
   setProgram: (program: Program | null) => void;
   toggleSaved: (id: string) => void;
 
@@ -70,7 +66,6 @@ export const useStore = create<State>()(
   persist(
     (set, get) => ({
       profile: DEFAULT_PROFILE,
-      theme: 'dark',
       program: null,
       logs: [],
       active: null,
@@ -79,7 +74,6 @@ export const useStore = create<State>()(
       lastWeights: {},
 
       setProfile: (patch) => set((s) => ({ profile: { ...s.profile, ...patch } })),
-      setTheme: (theme) => set({ theme }),
       setProgram: (program) => set({ program }),
 
       toggleSaved: (id) =>
@@ -288,7 +282,6 @@ export const useStore = create<State>()(
       version: 1,
       partialize: (s) => ({
         profile: s.profile,
-        theme: s.theme,
         program: s.program,
         logs: s.logs,
         active: s.active,

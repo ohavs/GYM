@@ -4,20 +4,21 @@ import { forwardRef } from 'react';
 import { motion, type HTMLMotionProps } from 'motion/react';
 import { haptic } from '@/lib/haptics';
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
+type Variant = 'ink' | 'card' | 'tint' | 'quiet' | 'danger';
 type Size = 'sm' | 'md' | 'lg';
 
 const VARIANTS: Record<Variant, string> = {
-  primary: 'bg-accent text-accent-ink shadow-[0_6px_20px_-10px_var(--accent)]',
-  secondary: 'bg-surface-2 text-text border border-line',
-  ghost: 'bg-transparent text-muted border border-transparent',
-  danger: 'bg-bad-wash text-bad border border-bad/25',
+  ink: 'bg-ink text-white',
+  card: 'bg-card text-ink shadow-[var(--shadow-soft)]',
+  tint: 'bg-lilac text-ink',
+  quiet: 'bg-transparent text-muted',
+  danger: 'bg-blush text-red',
 };
 
 const SIZES: Record<Size, string> = {
-  sm: 'h-10 px-4 text-[14px] gap-1.5',
-  md: 'h-12 px-5 text-[15px] gap-2',
-  lg: 'h-14 px-6 text-[17px] gap-2.5',
+  sm: 'h-11 px-5 text-[14px] gap-1.5',
+  md: 'h-13 px-6 text-[15px] gap-2',
+  lg: 'h-15 px-7 text-[16px] gap-2.5',
 };
 
 type Props = Omit<HTMLMotionProps<'button'>, 'ref'> & {
@@ -28,23 +29,33 @@ type Props = Omit<HTMLMotionProps<'button'>, 'ref'> & {
 };
 
 export const Button = forwardRef<HTMLButtonElement, Props>(function Button(
-  { variant = 'primary', size = 'md', block, loading, className = '', children, onClick, disabled, ...rest },
+  {
+    variant = 'ink',
+    size = 'md',
+    block,
+    loading,
+    className = '',
+    children,
+    onClick,
+    disabled,
+    ...rest
+  },
   ref,
 ) {
   return (
     <motion.button
       ref={ref}
-      whileTap={disabled || loading ? undefined : { scale: 0.965 }}
-      transition={{ type: 'spring', stiffness: 520, damping: 30 }}
+      whileTap={disabled || loading ? undefined : { scale: 0.955 }}
+      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
       disabled={disabled || loading}
       onClick={(e) => {
         haptic('tap');
         onClick?.(e);
       }}
       className={[
-        'relative inline-flex items-center justify-center rounded-full font-semibold',
-        'transition-colors duration-150 disabled:opacity-45 disabled:pointer-events-none',
-        'select-none whitespace-nowrap',
+        'relative inline-flex select-none items-center justify-center whitespace-nowrap',
+        'rounded-full font-medium transition-colors duration-150',
+        'disabled:pointer-events-none disabled:opacity-40',
         VARIANTS[variant],
         SIZES[size],
         block ? 'w-full' : '',
@@ -52,14 +63,7 @@ export const Button = forwardRef<HTMLButtonElement, Props>(function Button(
       ].join(' ')}
       {...rest}
     >
-      {loading ? (
-        <span className="flex items-center gap-2">
-          <Spinner />
-          <span className="opacity-80">רגע...</span>
-        </span>
-      ) : (
-        children
-      )}
+      {loading ? <Spinner /> : children}
     </motion.button>
   );
 });
@@ -67,7 +71,7 @@ export const Button = forwardRef<HTMLButtonElement, Props>(function Button(
 function Spinner() {
   return (
     <motion.span
-      aria-hidden
+      aria-label="טוען"
       className="block size-4 rounded-full border-2 border-current border-t-transparent"
       animate={{ rotate: 360 }}
       transition={{ duration: 0.7, repeat: Infinity, ease: 'linear' }}
@@ -75,34 +79,42 @@ function Spinner() {
   );
 }
 
-/** Circular icon button used in headers and media overlays. */
+/**
+ * Circular control. The mockup leans on these for every secondary action, so
+ * they carry real presence: 48px by default with a soft card lift.
+ */
 export function IconButton({
   label,
   className = '',
-  tone = 'surface',
+  tone = 'card',
+  size = 'md',
   onClick,
   children,
   ...rest
 }: Omit<HTMLMotionProps<'button'>, 'ref'> & {
   label: string;
-  tone?: 'surface' | 'glass' | 'accent';
+  tone?: 'card' | 'ink' | 'tint' | 'bare';
+  size?: 'sm' | 'md' | 'lg';
 }) {
   const tones = {
-    surface: 'bg-surface-2 text-text border border-line',
-    glass: 'bg-black/45 text-white backdrop-blur-md border border-white/12',
-    accent: 'bg-accent text-accent-ink border border-transparent',
+    card: 'bg-card text-ink shadow-[var(--shadow-soft)]',
+    ink: 'bg-ink text-white',
+    tint: 'bg-lilac text-ink',
+    bare: 'bg-transparent text-muted',
   };
+  const sizes = { sm: 'size-10', md: 'size-12', lg: 'size-14' };
+
   return (
     <motion.button
       type="button"
       aria-label={label}
       whileTap={{ scale: 0.9 }}
-      transition={{ type: 'spring', stiffness: 520, damping: 28 }}
+      transition={{ type: 'spring', stiffness: 500, damping: 28 }}
       onClick={(e) => {
         haptic('tap');
         onClick?.(e);
       }}
-      className={`grid size-11 shrink-0 place-items-center rounded-full ${tones[tone]} ${className}`}
+      className={`grid shrink-0 place-items-center rounded-full ${tones[tone]} ${sizes[size]} ${className}`}
       {...rest}
     >
       {children}

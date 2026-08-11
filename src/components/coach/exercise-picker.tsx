@@ -42,9 +42,9 @@ export function ExercisePicker({
 
   return (
     <Sheet open={open} onClose={onClose} title="הוספת תרגיל" full>
-      <div className="sticky top-0 z-10 -mx-5 bg-bg-elev px-5 pb-3 pt-1">
+      <div className="sticky top-0 z-10 -mx-5 bg-canvas px-5 pb-4 pt-1">
         <SearchField value={q} onChange={setQ} placeholder="חיפוש תרגיל או שריר" />
-        <div className="no-scrollbar -mx-5 mt-2.5 flex gap-2 overflow-x-auto px-5">
+        <div className="no-scrollbar -mx-5 mt-3 flex gap-2.5 overflow-x-auto px-5">
           <Chip active={bodyPart === null} onClick={() => setBodyPart(null)}>
             הכל
           </Chip>
@@ -62,17 +62,16 @@ export function ExercisePicker({
 
       {results.length === 0 ? (
         <EmptyState
-          icon={<MagnifyingGlass size={24} />}
+          icon={<MagnifyingGlass size={30} />}
           title="אין תוצאות"
           body="נסו מונח אחר או שנו את אזור הגוף."
         />
       ) : (
-        <ul className="flex flex-col gap-2 pb-4">
+        <ul className="flex flex-col gap-2.5 pb-4">
           {results.map((exercise) => (
             <li key={exercise.id}>
               <ExerciseRow
                 exercise={exercise}
-                meta={meta}
                 detail={`${meta.targets[exercise.tg] ?? exercise.tg} · ${
                   meta.equipment.find((e) => e.key === exercise.eq)?.chip ?? exercise.eq
                 }`}

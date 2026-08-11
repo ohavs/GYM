@@ -1,111 +1,88 @@
 @import "tailwindcss";
 
 /* ==================================================================
-   מסלול - design tokens
-   One accent (ember), one neutral family (graphite), one radius system:
-   pill for interactive controls, 20px containers, 14px inputs and media.
+   מסלול - design system
+
+   Soft light canvas, white cards, pastel tint surfaces, one near-black
+   ink for every primary action. Type is one geometric family at large
+   sizes; corners are generous; shadows barely exist. Colour carries
+   surface meaning, never decoration.
    ================================================================== */
 
 @theme {
   --font-display: var(--font-rubik), system-ui, sans-serif;
-  --font-body: var(--font-assistant), system-ui, sans-serif;
-  --font-num: var(--font-mono), ui-monospace, monospace;
 
-  --radius-field: 14px;
-  --radius-card: 20px;
-  --radius-sheet: 28px;
+  --radius-xs: 12px;
+  --radius-sm: 16px;
+  --radius-md: 22px;
+  --radius-lg: 28px;
+  --radius-xl: 34px;
 
   --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
 
   --breakpoint-xs: 380px;
 }
 
 :root {
-  color-scheme: dark;
-
-  --bg: #0b0c0e;
-  --bg-elev: #121419;
-  --surface: #16191f;
-  --surface-2: #1d222a;
-  --surface-3: #262c36;
-  --line: #272d37;
-  --line-soft: #1e232b;
-
-  --text: #f3f5f8;
-  --muted: #98a2b0;
-  --faint: #6b7481;
-
-  --accent: #e8663c;
-  --accent-hot: #f2794f;
-  --accent-ink: #180d08;
-  --accent-wash: rgba(232, 102, 60, 0.14);
-  --accent-line: rgba(232, 102, 60, 0.32);
-
-  --ok: #46b98a;
-  --ok-wash: rgba(70, 185, 138, 0.14);
-  --warn: #d9a13f;
-  --bad: #dd5a55;
-  --bad-wash: rgba(221, 90, 85, 0.14);
-
-  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 32px -18px rgba(0, 0, 0, 0.9);
-  --shadow-lift: 0 2px 6px rgba(0, 0, 0, 0.45), 0 24px 48px -20px rgba(0, 0, 0, 0.95);
-
-  --tab-h: 68px;
-}
-
-[data-theme="light"] {
   color-scheme: light;
 
-  --bg: #f7f7f5;
-  --bg-elev: #ffffff;
-  --surface: #ffffff;
-  --surface-2: #f1f1ee;
-  --surface-3: #e7e7e3;
-  --line: #e2e2dd;
-  --line-soft: #ededea;
+  --canvas: #f6f4fa;
+  --card: #ffffff;
 
-  --text: #16181c;
-  --muted: #5c636d;
-  --faint: #878e98;
+  --ink: #16161a;
+  --ink-soft: #3c3c45;
+  --muted: #83838e;
+  --faint: #adadb8;
+  --line: #ececf3;
+  --line-strong: #e0dfe9;
 
-  --accent: #cf5327;
-  --accent-hot: #b8471f;
-  --accent-ink: #fff6f2;
-  --accent-wash: rgba(207, 83, 39, 0.1);
-  --accent-line: rgba(207, 83, 39, 0.26);
+  --peach: #fbe2c4;
+  --peach-deep: #f6cfa0;
+  --mint: #d9eee9;
+  --mint-deep: #bfe2da;
+  --lilac: #e8e3f8;
+  --lilac-deep: #d5cdf1;
+  --butter: #fcefd1;
+  --sky: #dee9f8;
+  --blush: #fadedd;
 
-  --ok: #2f8f66;
-  --ok-wash: rgba(47, 143, 102, 0.12);
-  --warn: #a97613;
-  --bad: #c0403b;
-  --bad-wash: rgba(192, 64, 59, 0.1);
+  --amber: #eda31f;
+  --green: #2ba98a;
+  --red: #dd6058;
 
-  --shadow-card: 0 1px 2px rgba(20, 22, 26, 0.06), 0 10px 28px -18px rgba(20, 22, 26, 0.35);
-  --shadow-lift: 0 2px 8px rgba(20, 22, 26, 0.08), 0 22px 44px -20px rgba(20, 22, 26, 0.4);
+  --on-tint: #16161a;
+
+  --shadow-soft: 0 8px 30px -16px rgba(22, 22, 26, 0.18);
+  --shadow-pop: 0 18px 44px -18px rgba(22, 22, 26, 0.3);
+  --shadow-dock: 0 12px 34px -12px rgba(22, 22, 26, 0.22);
+
+  --dock-h: 74px;
 }
 
 @theme inline {
-  --color-bg: var(--bg);
-  --color-bg-elev: var(--bg-elev);
-  --color-surface: var(--surface);
-  --color-surface-2: var(--surface-2);
-  --color-surface-3: var(--surface-3);
-  --color-line: var(--line);
-  --color-line-soft: var(--line-soft);
-  --color-text: var(--text);
+  --color-canvas: var(--canvas);
+  --color-card: var(--card);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
   --color-muted: var(--muted);
   --color-faint: var(--faint);
-  --color-accent: var(--accent);
-  --color-accent-hot: var(--accent-hot);
-  --color-accent-ink: var(--accent-ink);
-  --color-accent-wash: var(--accent-wash);
-  --color-accent-line: var(--accent-line);
-  --color-ok: var(--ok);
-  --color-ok-wash: var(--ok-wash);
-  --color-warn: var(--warn);
-  --color-bad: var(--bad);
-  --color-bad-wash: var(--bad-wash);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+
+  --color-peach: var(--peach);
+  --color-peach-deep: var(--peach-deep);
+  --color-mint: var(--mint);
+  --color-mint-deep: var(--mint-deep);
+  --color-lilac: var(--lilac);
+  --color-lilac-deep: var(--lilac-deep);
+  --color-butter: var(--butter);
+  --color-sky: var(--sky);
+  --color-blush: var(--blush);
+
+  --color-amber: var(--amber);
+  --color-green: var(--green);
+  --color-red: var(--red);
 }
 
 /* ------------------------------------------------------------------ */
@@ -117,31 +94,33 @@
 }
 
 html {
-  background: var(--bg);
+  background: var(--canvas);
   -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font-body);
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-display);
   font-size: 16px;
+  font-weight: 400;
   line-height: 1.5;
+  letter-spacing: -0.01em;
   overscroll-behavior-y: none;
   -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3, h4 {
-  font-family: var(--font-display);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.15;
+  font-weight: 600;
+  letter-spacing: -0.033em;
+  line-height: 1.1;
 }
 
 /* iOS zooms the viewport when a focused field is under 16px. */
 input, textarea, select, button {
   font-family: inherit;
   font-size: 16px;
+  letter-spacing: inherit;
 }
 
 button {
@@ -149,25 +128,24 @@ button {
 }
 
 ::selection {
-  background: var(--accent-wash);
-  color: var(--text);
+  background: var(--lilac-deep);
+  color: var(--ink);
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-  border-radius: 6px;
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+  border-radius: 8px;
 }
 
-/* Scrollbars only show on pointer devices, and stay in the neutral family. */
 @media (pointer: fine) {
   ::-webkit-scrollbar {
     width: 10px;
     height: 10px;
   }
   ::-webkit-scrollbar-thumb {
-    background: var(--surface-3);
-    border: 3px solid var(--bg);
+    background: var(--line-strong);
+    border: 3px solid var(--canvas);
     border-radius: 99px;
   }
   ::-webkit-scrollbar-track {
@@ -179,39 +157,28 @@ button {
 /* Utilities                                                           */
 /* ------------------------------------------------------------------ */
 
+/* Metrics share the text family; only the figures are locked to one width so
+   a ticking timer does not shuffle its neighbours. */
 @utility num {
-  font-family: var(--font-num);
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
 }
 
-/* For digit-only runs that carry a separator: "1,324", "0/3", "02:59".
-   Left to the RTL paragraph direction, the separator drifts to the wrong side.
-   Never use this on strings that also contain Hebrew, which is why it is a
-   separate utility rather than part of `num`. */
+/* Digit-only runs carrying a separator: "1,324", "0/3", "02:59". Left to the
+   RTL paragraph direction the separator drifts to the wrong side. */
 @utility digits {
-  font-family: var(--font-num);
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
   direction: ltr;
   unicode-bidi: isolate;
   display: inline-block;
 }
 
 @utility card {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-card);
-}
-
-@utility hairline {
-  border-color: var(--line);
-}
-
-@utility press {
-  transition: transform 140ms var(--ease-out-quint), background-color 140ms ease;
+  background: var(--card);
+  border-radius: var(--radius-lg);
 }
 
 @utility no-scrollbar {
@@ -229,47 +196,35 @@ button {
   padding-top: max(env(safe-area-inset-top), 0px);
 }
 
-/* Directional icons need mirroring in an RTL document. */
+/* Directional glyphs need mirroring in an RTL document. */
 @utility flip-rtl {
   transform: scaleX(-1);
 }
 
-/* The source artwork is dark line work on white. Inverting it in dark mode
-   keeps the figures readable without punching a white hole in the layout;
-   the hue rotation restores the red muscle highlights the invert flips. */
-.exercise-media {
-  background: #ffffff;
+/* ------------------------------------------------------------------ */
+/* Exercise artwork                                                    */
+/* ------------------------------------------------------------------ */
+
+/* The source art is line work on a white plate. `blend` drops that plate onto
+   a tint so the figure reads as a cutout sitting on the card, which is how the
+   large visual moments in this app are composed. */
+.art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
-[data-theme="dark"] .exercise-media {
-  background: #101216;
+.art-blend {
+  mix-blend-mode: multiply;
 }
 
-[data-theme="dark"] .exercise-media img {
-  filter: invert(1) hue-rotate(180deg);
-}
+/* ------------------------------------------------------------------ */
+/* Layout                                                              */
+/* ------------------------------------------------------------------ */
 
-/* Controls that float on top of exercise artwork. The artwork is white in the
-   light theme and near-black in the dark one, so the scrim has to flip with it
-   rather than being a fixed black overlay. */
-.media-chip {
-  background: rgba(22, 24, 28, 0.08);
-  color: #16181c;
-  backdrop-filter: blur(6px);
-}
-
-[data-theme="dark"] .media-chip {
-  background: rgba(255, 255, 255, 0.12);
-  color: #ffffff;
-}
-
-.press:active {
-  transform: scale(0.975);
-}
-
-/* Marks the vertical space reserved for the tab bar plus the home indicator. */
-.pb-tabbar {
-  padding-bottom: calc(var(--tab-h) + max(env(safe-area-inset-bottom), 8px) + 16px);
+.pb-dock {
+  padding-bottom: calc(var(--dock-h) + max(env(safe-area-inset-bottom), 10px) + 22px);
 }
 
 @media (prefers-reduced-motion: reduce) {

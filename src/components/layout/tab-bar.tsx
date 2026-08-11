@@ -30,6 +30,10 @@ const COACH_TABS = [
   { href: '/profile', label: 'פרופיל', Icon: UserCircle },
 ];
 
+/**
+ * A floating dock rather than an edge-to-edge bar: it keeps the soft canvas
+ * visible underneath and lets the active tab read as a solid ink pill.
+ */
 export function TabBar() {
   const pathname = usePathname();
   const role = useStore((s) => s.profile.role);
@@ -38,11 +42,14 @@ export function TabBar() {
   return (
     <nav
       aria-label="ניווט ראשי"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-bg-elev/88 backdrop-blur-2xl"
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-4 pb-[max(env(safe-area-inset-bottom),10px)]"
     >
       <ul
-        className="mx-auto grid max-w-[560px]"
-        style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))`, height: 'var(--tab-h)' }}
+        className="pointer-events-auto mx-auto grid max-w-[440px] rounded-full bg-card p-2 shadow-[var(--shadow-dock)]"
+        style={{
+          gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))`,
+          height: 'var(--dock-h)',
+        }}
       >
         {tabs.map(({ href, label, Icon }) => {
           const active = href === '/' ? pathname === '/' : pathname.startsWith(href);
@@ -52,33 +59,37 @@ export function TabBar() {
                 href={href}
                 onClick={() => haptic('select')}
                 aria-current={active ? 'page' : undefined}
-                className="flex h-full flex-col items-center justify-center gap-1"
+                aria-label={label}
+                className="relative flex h-full items-center justify-center rounded-full"
               >
-                <span className="relative grid size-8 place-items-center">
+                {active && (
+                  <motion.span
+                    layoutId="dock-pill"
+                    transition={{ type: 'spring', stiffness: 480, damping: 36 }}
+                    className="absolute inset-0 rounded-full bg-ink"
+                  />
+                )}
+                <span className="relative z-10 flex flex-col items-center gap-0.5">
+                  <Icon
+                    size={22}
+                    weight={active ? 'fill' : 'regular'}
+                    className={active ? 'text-white' : 'text-faint'}
+                  />
                   {active && (
                     <motion.span
-                      layoutId="tab-pill"
-                      transition={{ type: 'spring', stiffness: 500, damping: 38 }}
-                      className="absolute inset-0 rounded-full bg-accent-wash"
-                    />
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className="text-[10px] font-medium text-white"
+                    >
+                      {label}
+                    </motion.span>
                   )}
-                  <Icon
-                    size={21}
-                    weight={active ? 'fill' : 'regular'}
-                    className={`relative z-10 ${active ? 'text-accent' : 'text-faint'}`}
-                  />
-                </span>
-                <span
-                  className={`text-[11px] font-semibold ${active ? 'text-accent' : 'text-faint'}`}
-                >
-                  {label}
                 </span>
               </Link>
             </li>
           );
         })}
       </ul>
-      <div className="safe-b" />
     </nav>
   );
 }

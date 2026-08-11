@@ -11,10 +11,9 @@ import { haptic } from '@/lib/haptics';
 export type Rest = { endsAt: number; total: number };
 
 /**
- * The rest timer is the one place the app interrupts the user, so it owns the
- * bottom of the screen while it runs and leaves the moment rest is over.
- * The deadline lives in the parent, so the countdown survives re-renders and
- * stays correct if the screen is backgrounded mid-rest.
+ * The one place the app interrupts the user, so it takes the full width above
+ * the controls and leaves the moment rest is over. The deadline lives in the
+ * parent, so the countdown stays correct across re-renders and backgrounding.
  */
 export function RestTimer({
   rest,
@@ -44,17 +43,22 @@ export function RestTimer({
           initial={{ height: 0, opacity: 0 }}
           animate={{ height: 'auto', opacity: 1 }}
           exit={{ height: 0, opacity: 0 }}
-          transition={{ type: 'spring', stiffness: 340, damping: 34 }}
-          className="overflow-hidden border-b border-line-soft bg-ok-wash"
+          transition={{ type: 'spring', stiffness: 320, damping: 32 }}
+          className="overflow-hidden"
         >
-          <div className="mx-auto flex w-full max-w-[560px] items-center gap-3 px-4 py-3">
-            <ProgressRing progress={rest.total ? left / rest.total : 0} size={56} stroke={6} tone="ok">
-              <span className="digits text-[12px] font-bold">{mmss(left)}</span>
+          <div className="mx-auto flex w-full max-w-[520px] items-center gap-4 rounded-[var(--radius-lg)] bg-ink p-3 ps-3 pe-4 text-white">
+            <ProgressRing
+              progress={rest.total ? left / rest.total : 0}
+              size={56}
+              stroke={5}
+              tone="white"
+            >
+              <span className="digits text-[13px] font-semibold">{mmss(left)}</span>
             </ProgressRing>
 
             <div className="min-w-0 flex-1">
-              <p className="text-[15px] font-semibold">מנוחה</p>
-              <p className="truncate text-[13px] text-muted">הבא בתור: {nextLabel}</p>
+              <p className="text-[15px] font-medium">מנוחה</p>
+              <p className="truncate text-[12.5px] text-white/50">הבא: {nextLabel}</p>
             </div>
 
             <button
@@ -63,7 +67,7 @@ export function RestTimer({
                 haptic('tap');
                 onExtend();
               }}
-              className="flex h-10 items-center gap-1 rounded-full border border-line bg-surface-2 px-3 text-[13px] font-semibold"
+              className="flex h-10 items-center gap-1 rounded-full bg-white/12 px-3.5 text-[13px] font-medium"
             >
               <Plus size={13} weight="bold" />
               <span className="num">15</span>
@@ -74,10 +78,10 @@ export function RestTimer({
                 haptic('tap');
                 onDone();
               }}
-              className="grid size-10 shrink-0 place-items-center rounded-full bg-accent text-accent-ink"
+              className="grid size-10 shrink-0 place-items-center rounded-full bg-white text-ink"
               aria-label="דילוג על המנוחה"
             >
-              <SkipForward size={16} weight="fill" className="flip-rtl" />
+              <SkipForward size={15} weight="fill" className="flip-rtl" />
             </button>
           </div>
         </motion.div>

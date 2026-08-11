@@ -23,17 +23,17 @@ import { buildProgram, GOAL_LABEL } from '@/lib/program';
 import type { BodyPartKey, Goal, Level, Place } from '@/lib/types';
 import { haptic } from '@/lib/haptics';
 
-const GOALS: { value: Goal; title: string; description: string; icon: React.ReactNode }[] = [
-  { value: 'muscle', title: GOAL_LABEL.muscle, description: 'נפח בינוני, 8 עד 12 חזרות', icon: <Barbell size={21} weight="bold" /> },
-  { value: 'strength', title: GOAL_LABEL.strength, description: 'משקלים כבדים, מעט חזרות', icon: <Medal size={21} weight="bold" /> },
-  { value: 'fat', title: GOAL_LABEL.fat, description: 'חזרות גבוהות, מנוחות קצרות', icon: <Fire size={21} weight="bold" /> },
-  { value: 'health', title: GOAL_LABEL.health, description: 'אימון מאוזן ונוח לשגרה', icon: <Heart size={21} weight="bold" /> },
+const GOALS: { value: Goal; title: string; description: string; icon: React.ReactNode; tint: 'peach' | 'mint' | 'lilac' | 'butter' }[] = [
+  { value: 'muscle', title: GOAL_LABEL.muscle, description: 'נפח בינוני, 8 עד 12 חזרות', icon: <Barbell size={21} weight="bold" />, tint: 'peach' },
+  { value: 'strength', title: GOAL_LABEL.strength, description: 'משקלים כבדים, מעט חזרות', icon: <Medal size={21} weight="bold" />, tint: 'lilac' },
+  { value: 'fat', title: GOAL_LABEL.fat, description: 'חזרות גבוהות, מנוחות קצרות', icon: <Fire size={21} weight="bold" />, tint: 'butter' },
+  { value: 'health', title: GOAL_LABEL.health, description: 'אימון מאוזן ונוח לשגרה', icon: <Heart size={21} weight="bold" />, tint: 'mint' },
 ];
 
-const LEVELS: { value: Level; title: string; description: string; icon: React.ReactNode }[] = [
-  { value: 1, title: 'מתחיל', description: 'עד חצי שנה של אימוני התנגדות', icon: <Sun size={21} weight="bold" /> },
-  { value: 2, title: 'בינוני', description: 'מתאמן בקביעות, מכיר את התרגילים', icon: <Lightning size={21} weight="bold" /> },
-  { value: 3, title: 'מתקדם', description: 'שנתיים ומעלה, טכניקה טובה', icon: <Sparkle size={21} weight="bold" /> },
+const LEVELS: { value: Level; title: string; description: string; icon: React.ReactNode; tint: 'peach' | 'mint' | 'lilac' }[] = [
+  { value: 1, title: 'מתחיל', description: 'עד חצי שנה של אימוני התנגדות', icon: <Sun size={21} weight="bold" />, tint: 'butter' as never },
+  { value: 2, title: 'בינוני', description: 'מתאמן בקביעות, מכיר את התרגילים', icon: <Lightning size={21} weight="bold" />, tint: 'mint' },
+  { value: 3, title: 'מתקדם', description: 'שנתיים ומעלה, טכניקה טובה', icon: <Sparkle size={21} weight="bold" />, tint: 'lilac' },
 ];
 
 const PLACES: { value: Place; title: string; description: string; icon: React.ReactNode }[] = [
@@ -42,13 +42,13 @@ const PLACES: { value: Place; title: string; description: string; icon: React.Re
   { value: 'minimal', title: 'מינימלי', description: 'משקל גוף וזוג משקולות', icon: <Barbell size={21} weight="bold" /> },
 ];
 
-const FOCUS: { value: BodyPartKey; label: string }[] = [
-  { value: 'chest', label: 'חזה' },
-  { value: 'back', label: 'גב' },
-  { value: 'shoulders', label: 'כתפיים' },
-  { value: 'upper arms', label: 'זרועות' },
-  { value: 'upper legs', label: 'רגליים' },
-  { value: 'waist', label: 'בטן וליבה' },
+const FOCUS: { value: BodyPartKey; label: string; tint: string }[] = [
+  { value: 'chest', label: 'חזה', tint: 'bg-peach' },
+  { value: 'back', label: 'גב', tint: 'bg-mint' },
+  { value: 'shoulders', label: 'כתפיים', tint: 'bg-lilac' },
+  { value: 'upper arms', label: 'זרועות', tint: 'bg-butter' },
+  { value: 'upper legs', label: 'רגליים', tint: 'bg-sky' },
+  { value: 'waist', label: 'בטן וליבה', tint: 'bg-blush' },
 ];
 
 const STEPS = ['שם', 'מטרה', 'ניסיון', 'תדירות', 'ציוד', 'דגשים'] as const;
@@ -85,15 +85,14 @@ export default function WelcomePage() {
     const program = buildProgram({ goal, level, days, place, focus, exercises, meta });
     setProfile({ name: name.trim(), goal, level, days, place, focus, onboarded: true });
     setProgram(program);
-    // A beat of "building" reads as work being done, and covers the state write.
-    setTimeout(() => router.replace('/'), reduce ? 0 : 1100);
+    setTimeout(() => router.replace('/'), reduce ? 0 : 1400);
   };
 
   const variants = useMemo(
     () => ({
-      enter: (dir: number) => (reduce ? { opacity: 0 } : { x: dir * 40, opacity: 0 }),
+      enter: (dir: number) => (reduce ? { opacity: 0 } : { x: dir * 44, opacity: 0 }),
       center: { x: 0, opacity: 1 },
-      exit: (dir: number) => (reduce ? { opacity: 0 } : { x: dir * -40, opacity: 0 }),
+      exit: (dir: number) => (reduce ? { opacity: 0 } : { x: dir * -44, opacity: 0 }),
     }),
     [reduce],
   );
@@ -102,26 +101,26 @@ export default function WelcomePage() {
   if (building) return <BuildingScreen name={name.trim()} />;
 
   return (
-    <div className="mx-auto flex min-h-[100dvh] w-full max-w-[560px] flex-col px-4 safe-t">
-      <header className="flex items-center gap-3 pt-4 pb-6">
+    <div className="mx-auto flex min-h-[100dvh] w-full max-w-[520px] flex-col px-5 safe-t">
+      <header className="flex items-center gap-3 pt-5 pb-8">
         {step > 0 ? (
           <IconButton label="שלב קודם" onClick={() => go(-1)}>
-            <CaretLeft size={18} weight="bold" className="flip-rtl" />
+            <CaretLeft size={19} weight="bold" className="flip-rtl" />
           </IconButton>
         ) : (
-          <span className="size-11" />
+          <span className="size-12" />
         )}
         <div className="flex flex-1 gap-1.5">
           {STEPS.map((label, i) => (
-            <span
+            <motion.span
               key={label}
-              className={`h-1 flex-1 rounded-full transition-colors duration-300 ${
-                i <= step ? 'bg-accent' : 'bg-surface-3'
-              }`}
+              initial={false}
+              animate={{ opacity: i <= step ? 1 : 0.35 }}
+              className={`h-1.5 flex-1 rounded-full ${i <= step ? 'bg-ink' : 'bg-line-strong'}`}
             />
           ))}
         </div>
-        <span className="digits w-11 text-end text-[13px] text-faint">
+        <span className="digits w-12 text-end text-[13px] text-faint">
           {step + 1}/{STEPS.length}
         </span>
       </header>
@@ -135,8 +134,8 @@ export default function WelcomePage() {
             initial="enter"
             animate="center"
             exit="exit"
-            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-            className="flex flex-col gap-6"
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            className="flex flex-col gap-7"
           >
             {step === 0 && (
               <StepShell
@@ -156,8 +155,11 @@ export default function WelcomePage() {
             )}
 
             {step === 1 && (
-              <StepShell title="מה המטרה?" body="המטרה קובעת כמה סטים, כמה חזרות וכמה מנוחה בין הסטים.">
-                <div className="flex flex-col gap-2.5">
+              <StepShell
+                title="מה המטרה?"
+                body="המטרה קובעת כמה סטים, כמה חזרות וכמה מנוחה בין הסטים."
+              >
+                <div className="flex flex-col gap-3">
                   {GOALS.map((option) => (
                     <OptionCard
                       key={option.value}
@@ -166,6 +168,7 @@ export default function WelcomePage() {
                       title={option.title}
                       description={option.description}
                       icon={option.icon}
+                      tint={option.tint}
                     />
                   ))}
                 </div>
@@ -173,8 +176,11 @@ export default function WelcomePage() {
             )}
 
             {step === 2 && (
-              <StepShell title="כמה ניסיון יש לך?" body="לפי זה נחליט אילו תרגילים להכניס ובאיזו מורכבות.">
-                <div className="flex flex-col gap-2.5">
+              <StepShell
+                title="כמה ניסיון יש לך?"
+                body="לפי זה נחליט אילו תרגילים להכניס ובאיזו מורכבות."
+              >
+                <div className="flex flex-col gap-3">
                   {LEVELS.map((option) => (
                     <OptionCard
                       key={option.value}
@@ -183,6 +189,7 @@ export default function WelcomePage() {
                       title={option.title}
                       description={option.description}
                       icon={option.icon}
+                      tint={option.tint}
                     />
                   ))}
                 </div>
@@ -190,32 +197,32 @@ export default function WelcomePage() {
             )}
 
             {step === 3 && (
-              <StepShell title="כמה פעמים בשבוע?" body="עדיף להתחייב למספר שאפשר לעמוד בו לאורך זמן.">
-                <div className="card p-5">
-                  <Slider
-                    label="אימונים בשבוע"
-                    value={days}
-                    min={2}
-                    max={6}
-                    onChange={setDays}
-                    format={(v) => `${v}`}
-                  />
-                  <p className="mt-4 rounded-[var(--radius-field)] bg-surface-2 px-4 py-3 text-[13px] leading-relaxed text-muted">
-                    {days <= 2 && 'שני אימוני גוף מלא בשבוע. מספיק לשמור ולהתקדם לאט.'}
-                    {days === 3 && (level === 1
+              <StepShell
+                title="כמה פעמים בשבוע?"
+                body="עדיף להתחייב למספר שאפשר לעמוד בו לאורך זמן."
+              >
+                <div className="rounded-[var(--radius-lg)] bg-card p-6 shadow-[var(--shadow-soft)]">
+                  <Slider label="אימונים בשבוע" value={days} min={2} max={6} onChange={setDays} />
+                </div>
+                <p className="rounded-[var(--radius-lg)] bg-mint px-5 py-4 text-[14px] leading-relaxed">
+                  {days <= 2 && 'שני אימוני גוף מלא בשבוע. מספיק לשמור ולהתקדם לאט.'}
+                  {days === 3 &&
+                    (level === 1
                       ? 'שלושה אימוני גוף מלא. החלוקה הכי יעילה למתחילים.'
                       : 'דחיפה, משיכה ורגליים. חלוקה קלאסית שמכסה הכל.')}
-                    {days === 4 && 'עליון ותחתון פעמיים בשבוע. איזון טוב בין נפח להתאוששות.'}
-                    {days === 5 && 'חמישה אימונים משולבים. דורש שגרה יציבה.'}
-                    {days === 6 && 'דחיפה משיכה רגליים פעמיים. נפח גבוה, שימו לב לשינה.'}
-                  </p>
-                </div>
+                  {days === 4 && 'עליון ותחתון פעמיים בשבוע. איזון טוב בין נפח להתאוששות.'}
+                  {days === 5 && 'חמישה אימונים משולבים. דורש שגרה יציבה.'}
+                  {days === 6 && 'דחיפה משיכה רגליים פעמיים. נפח גבוה, שימו לב לשינה.'}
+                </p>
               </StepShell>
             )}
 
             {step === 4 && (
-              <StepShell title="איפה אתם מתאמנים?" body="נסנן את מאגר התרגילים לפי הציוד שזמין לכם בפועל.">
-                <div className="flex flex-col gap-2.5">
+              <StepShell
+                title="איפה אתם מתאמנים?"
+                body="נסנן את מאגר התרגילים לפי הציוד שזמין לכם בפועל."
+              >
+                <div className="flex flex-col gap-3">
                   {PLACES.map((option) => (
                     <OptionCard
                       key={option.value}
@@ -235,13 +242,15 @@ export default function WelcomePage() {
                 title="יש משהו שחשוב לכם במיוחד?"
                 body="בחירה אופציונלית. הקבוצות שתסמנו יקבלו קצת יותר נפח בשבוע."
               >
-                <div className="grid grid-cols-2 gap-2.5">
+                <div className="grid grid-cols-2 gap-3">
                   {FOCUS.map((option) => {
                     const selected = focus.includes(option.value);
                     return (
-                      <button
+                      <motion.button
                         key={option.value}
                         type="button"
+                        whileTap={{ scale: 0.96 }}
+                        transition={{ type: 'spring', stiffness: 480, damping: 30 }}
                         onClick={() => {
                           haptic('select');
                           setFocus((f) =>
@@ -251,14 +260,12 @@ export default function WelcomePage() {
                           );
                         }}
                         aria-pressed={selected}
-                        className={`rounded-[var(--radius-card)] border p-4 text-start text-[15px] font-semibold transition-colors ${
-                          selected
-                            ? 'border-accent-line bg-accent-wash text-accent'
-                            : 'border-line bg-surface text-muted'
+                        className={`h-24 rounded-[var(--radius-lg)] px-5 text-start text-[17px] font-medium transition-colors ${
+                          selected ? 'bg-ink text-white' : `${option.tint} text-ink`
                         }`}
                       >
                         {option.label}
-                      </button>
+                      </motion.button>
                     );
                   })}
                 </div>
@@ -268,7 +275,7 @@ export default function WelcomePage() {
         </AnimatePresence>
       </div>
 
-      <div className="sticky bottom-0 bg-bg pt-4 pb-[max(env(safe-area-inset-bottom),20px)]">
+      <div className="sticky bottom-0 bg-canvas pt-5 pb-[max(env(safe-area-inset-bottom),22px)]">
         {step < STEPS.length - 1 ? (
           <Button block size="lg" disabled={!canContinue} onClick={() => go(1)}>
             המשך
@@ -295,8 +302,8 @@ function StepShell({
   return (
     <>
       <div>
-        <h1 className="text-[28px] leading-tight">{title}</h1>
-        <p className="mt-2 max-w-[36ch] text-[15px] leading-relaxed text-muted">{body}</p>
+        <h1 className="text-[34px] leading-[1.06]">{title}</h1>
+        <p className="mt-3 max-w-[34ch] text-[15.5px] leading-relaxed text-muted">{body}</p>
       </div>
       {children}
     </>
@@ -307,24 +314,24 @@ function BuildingScreen({ name }: { name: string }) {
   const lines = ['מסננים תרגילים לפי הציוד שלך', 'מסדרים את השבוע', 'קובעים סטים וחזרות'];
   return (
     <div className="grid min-h-[100dvh] place-items-center px-8 text-center">
-      <div className="flex flex-col items-center gap-6">
+      <div className="flex flex-col items-center gap-8">
         <motion.span
-          className="grid size-20 place-items-center rounded-[28px] bg-accent text-accent-ink"
-          animate={{ scale: [1, 1.06, 1] }}
-          transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
+          className="grid size-24 place-items-center rounded-full bg-ink text-white"
+          animate={{ scale: [1, 1.07, 1] }}
+          transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
         >
-          <Barbell size={34} weight="bold" />
+          <Barbell size={38} weight="bold" />
         </motion.span>
         <div>
-          <h1 className="text-[24px]">בונים את המסלול{name ? ` של ${name}` : ''}</h1>
-          <ul className="mt-4 flex flex-col gap-2">
+          <h1 className="text-[28px]">בונים את המסלול{name ? ` של ${name}` : ''}</h1>
+          <ul className="mt-6 flex flex-col gap-2.5">
             {lines.map((line, i) => (
               <motion.li
                 key={line}
-                initial={{ opacity: 0, y: 6 }}
+                initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.18 + i * 0.26 }}
-                className="text-[14px] text-muted"
+                transition={{ delay: 0.2 + i * 0.32 }}
+                className="text-[15px] text-muted"
               >
                 {line}
               </motion.li>
