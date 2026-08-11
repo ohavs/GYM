@@ -43,3 +43,6 @@ next-env.d.ts
 # Local env
 .env*.local
 out/
+
+# Firebase deploy cache
+.firebase/
