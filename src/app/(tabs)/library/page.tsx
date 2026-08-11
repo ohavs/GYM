@@ -136,7 +136,7 @@ function Library() {
               <FunnelSimple size={19} weight="bold" />
             </IconButton>
             {active > 0 && (
-              <span className="digits pointer-events-none absolute -top-1 -end-1 grid size-5.5 place-items-center rounded-full bg-red text-[10px] font-semibold text-white">
+              <span className="digits pointer-events-none absolute -top-1 -end-1 grid size-5.5 place-items-center rounded-full bg-red text-[10px] font-semibold text-on-ink">
                 {active}
               </span>
             )}
@@ -320,7 +320,7 @@ function ViewSwitcher({
             <Icon
               size={17}
               weight="bold"
-              className={`relative z-10 ${active ? 'text-white' : 'text-faint'}`}
+              className={`relative z-10 ${active ? 'text-on-ink' : 'text-faint'}`}
             />
           </button>
         );
@@ -343,7 +343,7 @@ function SaveToggle({ id }: { id: string }) {
         toggleSaved(id);
       }}
       className={`me-1 grid size-9 shrink-0 place-items-center rounded-full transition-colors ${
-        saved ? 'bg-ink text-white' : 'bg-canvas text-faint'
+        saved ? 'bg-ink text-on-ink' : 'bg-canvas text-faint'
       }`}
     >
       <BookmarkSimple size={15} weight={saved ? 'fill' : 'regular'} />

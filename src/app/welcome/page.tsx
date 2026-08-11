@@ -288,7 +288,7 @@ export default function WelcomePage() {
                         />
                         {art && (
                           <span className="block h-28 w-full">
-                            <ExerciseMedia exercise={art} plain className="size-full" />
+                            <ExerciseMedia exercise={art} className="size-full" />
                           </span>
                         )}
                         <span className="flex items-center justify-between gap-2 px-4 pb-4 pt-1">
@@ -297,7 +297,7 @@ export default function WelcomePage() {
                             initial={false}
                             animate={{ scale: selected ? 1 : 0.6, opacity: selected ? 1 : 0 }}
                             transition={{ type: 'spring', stiffness: 520, damping: 26 }}
-                            className="grid size-7 shrink-0 place-items-center rounded-full bg-ink text-white"
+                            className="grid size-7 shrink-0 place-items-center rounded-full bg-ink text-on-ink"
                           >
                             <Check size={14} weight="bold" />
                           </motion.span>
@@ -353,7 +353,7 @@ function BuildingScreen({ name }: { name: string }) {
     <div className="grid min-h-[100dvh] place-items-center px-8 text-center">
       <div className="flex flex-col items-center gap-8">
         <motion.span
-          className="grid size-24 place-items-center rounded-full bg-ink text-white"
+          className="grid size-24 place-items-center rounded-full bg-ink text-on-ink"
           animate={{ scale: [1, 1.07, 1] }}
           transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
         >

@@ -73,13 +73,13 @@ export function TabBar() {
                   <Icon
                     size={22}
                     weight={active ? 'fill' : 'regular'}
-                    className={active ? 'text-white' : 'text-faint'}
+                    className={active ? 'text-on-ink' : 'text-faint'}
                   />
                   {active && (
                     <motion.span
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
-                      className="text-[10px] font-medium text-white"
+                      className="text-[10px] font-medium text-on-ink"
                     >
                       {label}
                     </motion.span>

@@ -157,7 +157,7 @@ export function Sheet({ open, onClose, title, subtitle, full, children, footer }
           <motion.button
             type="button"
             aria-label="סגירה"
-            className="absolute inset-0 bg-ink/25 backdrop-blur-[3px]"
+            className="absolute inset-0 bg-scrim backdrop-blur-[3px]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -182,7 +182,7 @@ export function Sheet({ open, onClose, title, subtitle, full, children, footer }
               style={{ y }}
               className={[
                 'flex w-full flex-col overflow-hidden bg-canvas',
-                'rounded-t-[var(--radius-xl)] shadow-[0_-16px_50px_-20px_rgba(22,22,26,0.4)]',
+                'rounded-t-[var(--radius-xl)] shadow-[var(--shadow-sheet)]',
                 full ? 'h-[93dvh]' : 'max-h-[88dvh]',
               ].join(' ')}
             >

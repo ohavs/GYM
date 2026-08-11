@@ -24,49 +24,210 @@
   --breakpoint-xs: 380px;
 }
 
-:root {
+/* ------------------------------------------------------------------ */
+/* Colour                                                              */
+/* ------------------------------------------------------------------ */
+
+/*
+ * Every colour in the app comes from here, and every one of them is derived
+ * rather than typed. A palette sets seven hue angles; the recipes below turn
+ * those into surfaces, and the dark block restates the same recipes at dark
+ * lightnesses. Adding a palette is seven numbers, and it cannot land
+ * half-applied, because no component names a colour of its own.
+ *
+ * Pairs that matter:
+ *   ink / on-ink      the strong action surface. Near-black in light, near
+ *                     white in dark, so a primary button is always the most
+ *                     contrasted thing on screen.
+ *   hero / on-hero    the big feature panels. Identical to ink in light; a
+ *                     raised dark in dark, because a full-width near-white
+ *                     card at that size is glare, not emphasis.
+ *   tint / on-tint    the six pastel surfaces and what reads on them.
+ *   art / on-art      artwork plates. These stay light in both themes: the
+ *                     figures are line work on a white plate dropped in with
+ *                     multiply, and multiply onto a dark surface erases them.
+ */
+
+/*
+ * The light block is also reachable as [data-theme='light'] on any element, so
+ * a subtree can opt back into daylight while the app is dark. The palette
+ * swatches in settings use that: at dark lightnesses every palette collapses
+ * to the same near-black, and a picker whose options look identical is not a
+ * picker.
+ */
+:root,
+[data-theme='light'] {
   color-scheme: light;
 
-  --canvas: #f6f4fa;
-  --card: #ffffff;
+  /* Palette: neutral hue, then the six tint hues. */
+  --hn: 292;
+  --h1: 62;
+  --h2: 168;
+  --h3: 292;
+  --h4: 88;
+  --h5: 250;
+  --h6: 12;
 
-  --ink: #16161a;
-  --ink-soft: #3c3c45;
-  --muted: #83838e;
-  --faint: #adadb8;
-  --line: #ececf3;
-  --line-strong: #e0dfe9;
+  --canvas: oklch(97.2% 0.009 var(--hn));
+  --card: oklch(100% 0 var(--hn));
 
-  --peach: #fbe2c4;
-  --peach-deep: #f6cfa0;
-  --mint: #d9eee9;
-  --mint-deep: #bfe2da;
-  --lilac: #e8e3f8;
-  --lilac-deep: #d5cdf1;
-  --butter: #fcefd1;
-  --butter-deep: #f7e0ac;
-  --sky: #dee9f8;
-  --sky-deep: #c4d8f2;
-  --blush: #fadedd;
-  --blush-deep: #f4c5c3;
+  --ink: oklch(21% 0.014 var(--hn));
+  --on-ink: oklch(99.5% 0.002 var(--hn));
+  --hero: var(--ink);
+  --on-hero: var(--on-ink);
 
-  --amber: #eda31f;
-  --green: #2ba98a;
-  --red: #dd6058;
+  --ink-soft: oklch(40% 0.014 var(--hn));
+  /* The quiet tiers are set by contrast, not by taste: 48% and 54% are the
+     darkest-looking greys that still clear 4.5:1 on both card and canvas in
+     every palette. Anything airier failed to read at 12px. */
+  --muted: oklch(48% 0.012 var(--hn));
+  --faint: oklch(54% 0.012 var(--hn));
+  --line: oklch(95% 0.008 var(--hn));
+  --line-strong: oklch(91.5% 0.011 var(--hn));
 
-  --on-tint: #16161a;
+  --peach: oklch(92.5% 0.05 var(--h1));
+  --peach-deep: oklch(87% 0.085 var(--h1));
+  --mint: oklch(92.5% 0.05 var(--h2));
+  --mint-deep: oklch(87% 0.085 var(--h2));
+  --lilac: oklch(92.5% 0.05 var(--h3));
+  --lilac-deep: oklch(87% 0.085 var(--h3));
+  --butter: oklch(92.5% 0.05 var(--h4));
+  --butter-deep: oklch(87% 0.085 var(--h4));
+  --sky: oklch(92.5% 0.05 var(--h5));
+  --sky-deep: oklch(87% 0.085 var(--h5));
+  --blush: oklch(92.5% 0.05 var(--h6));
+  --blush-deep: oklch(87% 0.085 var(--h6));
 
-  --shadow-soft: 0 8px 30px -16px rgba(22, 22, 26, 0.18);
-  --shadow-pop: 0 18px 44px -18px rgba(22, 22, 26, 0.3);
-  --shadow-dock: 0 12px 34px -12px rgba(22, 22, 26, 0.22);
+  --on-tint: oklch(21% 0.014 var(--hn));
+  /* Inset well on a tint, e.g. the round icon plates inside pastel cards. */
+  --tint-well: rgb(255 255 255 / 0.6);
+
+  /* Artwork plates. Light in both themes, on purpose — see the note above. */
+  --art-peach: oklch(94% 0.04 var(--h1));
+  --art-mint: oklch(94% 0.04 var(--h2));
+  --art-lilac: oklch(94% 0.04 var(--h3));
+  --art-butter: oklch(94% 0.04 var(--h4));
+  --art-sky: oklch(94% 0.04 var(--h5));
+  --art-blush: oklch(94% 0.04 var(--h6));
+  --on-art: oklch(21% 0.014 var(--hn));
+  --art-well: rgb(255 255 255 / 0.72);
+
+  /* One value per accent, chosen to clear 4.5:1 against white in both
+     directions — as text on a card, and as a plate under white text. */
+  --amber: oklch(52% 0.15 78);
+  --green: oklch(52% 0.12 168);
+  --red: oklch(51% 0.16 22);
+
+  --scrim: oklch(21% 0.014 var(--hn) / 0.25);
+
+  --shadow-soft: 0 8px 30px -16px oklch(21% 0.014 var(--hn) / 0.18);
+  --shadow-pop: 0 18px 44px -18px oklch(21% 0.014 var(--hn) / 0.3);
+  --shadow-dock: 0 12px 34px -12px oklch(21% 0.014 var(--hn) / 0.22);
+  --shadow-sheet: 0 -16px 50px -20px oklch(21% 0.014 var(--hn) / 0.4);
 
   --dock-h: 74px;
+}
+
+/* ---- palettes: seven hues each ---------------------------------- */
+
+[data-palette='sand'] {
+  --hn: 72;
+  --h1: 48;
+  --h2: 140;
+  --h3: 330;
+  --h4: 82;
+  --h5: 226;
+  --h6: 22;
+}
+
+[data-palette='sea'] {
+  --hn: 232;
+  --h1: 205;
+  --h2: 178;
+  --h3: 268;
+  --h4: 92;
+  --h5: 240;
+  --h6: 340;
+}
+
+[data-palette='forest'] {
+  --hn: 148;
+  --h1: 118;
+  --h2: 158;
+  --h3: 285;
+  --h4: 78;
+  --h5: 212;
+  --h6: 28;
+}
+
+[data-palette='rose'] {
+  --hn: 350;
+  --h1: 25;
+  --h2: 158;
+  --h3: 310;
+  --h4: 70;
+  --h5: 258;
+  --h6: 5;
+}
+
+/* ---- dark: the same recipes, restated dark ----------------------- */
+
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --canvas: oklch(17.5% 0.014 var(--hn));
+  --card: oklch(22.5% 0.016 var(--hn));
+
+  --ink: oklch(94% 0.01 var(--hn));
+  --on-ink: oklch(18% 0.015 var(--hn));
+  --hero: oklch(27.5% 0.02 var(--hn));
+  --on-hero: oklch(96% 0.006 var(--hn));
+
+  --ink-soft: oklch(84% 0.012 var(--hn));
+  --muted: oklch(72% 0.012 var(--hn));
+  --faint: oklch(64% 0.012 var(--hn));
+  --line: oklch(28% 0.014 var(--hn));
+  --line-strong: oklch(35% 0.016 var(--hn));
+
+  /* Far quieter than the light tints are pastel. At dark lightnesses the same
+     chroma stops reading as a tint and starts reading as mud - warm hues turn
+     to brown long before the cool ones do - so the whole set is pulled down to
+     a colour you notice only next to its neighbours. */
+  --peach: oklch(28.5% 0.024 var(--h1));
+  --peach-deep: oklch(35% 0.042 var(--h1));
+  --mint: oklch(28.5% 0.024 var(--h2));
+  --mint-deep: oklch(35% 0.042 var(--h2));
+  --lilac: oklch(28.5% 0.024 var(--h3));
+  --lilac-deep: oklch(35% 0.042 var(--h3));
+  --butter: oklch(28.5% 0.024 var(--h4));
+  --butter-deep: oklch(35% 0.042 var(--h4));
+  --sky: oklch(28.5% 0.024 var(--h5));
+  --sky-deep: oklch(35% 0.042 var(--h5));
+  --blush: oklch(28.5% 0.024 var(--h6));
+  --blush-deep: oklch(35% 0.042 var(--h6));
+
+  --on-tint: oklch(96% 0.006 var(--hn));
+  --tint-well: rgb(255 255 255 / 0.12);
+
+  --amber: oklch(72% 0.15 78);
+  --green: oklch(72% 0.12 168);
+  --red: oklch(72% 0.16 22);
+
+  --scrim: oklch(6% 0.01 var(--hn) / 0.62);
+
+  --shadow-soft: 0 8px 30px -16px oklch(4% 0.008 var(--hn) / 0.55);
+  --shadow-pop: 0 18px 44px -18px oklch(4% 0.008 var(--hn) / 0.7);
+  --shadow-dock: 0 12px 34px -12px oklch(4% 0.008 var(--hn) / 0.6);
+  --shadow-sheet: 0 -16px 50px -20px oklch(4% 0.008 var(--hn) / 0.75);
 }
 
 @theme inline {
   --color-canvas: var(--canvas);
   --color-card: var(--card);
   --color-ink: var(--ink);
+  --color-on-ink: var(--on-ink);
+  --color-hero: var(--hero);
+  --color-on-hero: var(--on-hero);
   --color-ink-soft: var(--ink-soft);
   --color-muted: var(--muted);
   --color-faint: var(--faint);
@@ -85,10 +246,22 @@
   --color-sky-deep: var(--sky-deep);
   --color-blush: var(--blush);
   --color-blush-deep: var(--blush-deep);
+  --color-on-tint: var(--on-tint);
+  --color-tint-well: var(--tint-well);
+
+  --color-art-peach: var(--art-peach);
+  --color-art-mint: var(--art-mint);
+  --color-art-lilac: var(--art-lilac);
+  --color-art-butter: var(--art-butter);
+  --color-art-sky: var(--art-sky);
+  --color-art-blush: var(--art-blush);
+  --color-on-art: var(--on-art);
+  --color-art-well: var(--art-well);
 
   --color-amber: var(--amber);
   --color-green: var(--green);
   --color-red: var(--red);
+  --color-scrim: var(--scrim);
 }
 
 /* ------------------------------------------------------------------ */

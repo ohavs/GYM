@@ -102,7 +102,7 @@ export default function ProgramPage() {
                 מסלול שנבנה על ידי {program.coachName ?? 'המאמן שלך'}
               </p>
               {program.note && (
-                <p className="mt-1.5 text-[14px] leading-relaxed text-ink/65">{program.note}</p>
+                <p className="mt-1.5 text-[14px] leading-relaxed text-on-tint/65">{program.note}</p>
               )}
             </div>
           </div>

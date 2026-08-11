@@ -70,7 +70,7 @@ export function ExerciseSheet({
               aria-pressed={saved}
               onClick={() => toggleSaved(exercise.id)}
               className={`absolute end-4 top-4 grid size-11 place-items-center rounded-full transition-colors ${
-                saved ? 'bg-ink text-white' : 'bg-card/85 text-ink backdrop-blur-sm'
+                saved ? 'bg-ink text-on-ink' : 'bg-card/85 text-ink backdrop-blur-sm'
               }`}
             >
               <BookmarkSimple size={17} weight={saved ? 'fill' : 'regular'} />
@@ -137,7 +137,7 @@ export function ExerciseSheet({
                     key={cue}
                     className="flex gap-3.5 rounded-[var(--radius-md)] bg-card p-4 shadow-[var(--shadow-soft)]"
                   >
-                    <span className="num grid size-7 shrink-0 place-items-center rounded-full bg-ink text-[12px] font-semibold text-white">
+                    <span className="num grid size-7 shrink-0 place-items-center rounded-full bg-ink text-[12px] font-semibold text-on-ink">
                       {i + 1}
                     </span>
                     <span className="text-[14.5px] leading-relaxed text-ink-soft">{cue}</span>
@@ -212,9 +212,9 @@ function Fact({
 }) {
   return (
     <div className={`flex flex-col gap-4 rounded-[var(--radius-lg)] ${TINT_BG[tint]} p-5`}>
-      <span className="grid size-10 place-items-center rounded-full bg-white/60">{icon}</span>
+      <span className="grid size-10 place-items-center rounded-full bg-tint-well">{icon}</span>
       <div>
-        <dt className="text-[12px] text-ink/50">{label}</dt>
+        <dt className="text-[12px] text-on-tint/72">{label}</dt>
         <dd className="mt-1 text-[19px] font-medium leading-tight">{value}</dd>
       </div>
     </div>

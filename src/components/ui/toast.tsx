@@ -78,7 +78,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                     toast.action?.onPress();
                     setToasts((list) => list.filter((t) => t.id !== toast.id));
                   }}
-                  className="shrink-0 rounded-full bg-ink px-4 py-2 text-[13px] font-medium text-white"
+                  className="shrink-0 rounded-full bg-ink px-4 py-2 text-[13px] font-medium text-on-ink"
                 >
                   {toast.action.label}
                 </button>

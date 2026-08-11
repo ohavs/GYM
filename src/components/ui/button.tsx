@@ -8,7 +8,7 @@ type Variant = 'ink' | 'card' | 'tint' | 'quiet' | 'danger';
 type Size = 'sm' | 'md' | 'lg';
 
 const VARIANTS: Record<Variant, string> = {
-  ink: 'bg-ink text-white',
+  ink: 'bg-ink text-on-ink',
   card: 'bg-card text-ink shadow-[var(--shadow-soft)]',
   tint: 'bg-lilac text-ink',
   quiet: 'bg-transparent text-muted',
@@ -98,7 +98,7 @@ export function IconButton({
 }) {
   const tones = {
     card: 'bg-card text-ink shadow-[var(--shadow-soft)]',
-    ink: 'bg-ink text-white',
+    ink: 'bg-ink text-on-ink',
     tint: 'bg-lilac text-ink',
     bare: 'bg-transparent text-muted',
   };

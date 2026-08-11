@@ -3,13 +3,17 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
 import { animationUrl, thumbUrl } from '@/lib/data';
-import { TINT_BG, tintFor, type Tint } from '@/components/ui/controls';
+import { TINT_ART, tintFor, type Tint } from '@/components/ui/controls';
 import type { Exercise } from '@/lib/types';
 
 /**
  * The exercise figure is the app's photography. It sits directly on a tint,
  * blended so the source artwork's white plate disappears and the figure reads
  * as a cutout on the card.
+ *
+ * The plate is an `art` tint, which stays light in dark mode. Multiply against
+ * a dark surface subtracts the figure into the background and leaves an empty
+ * coloured box, so the artwork keeps its own daylight in both themes.
  *
  * Thumbnails ship with the app so a card paints instantly; the 90 KB animation
  * loads only where it earns its bytes, and a missing CDN just leaves the still.
@@ -19,18 +23,15 @@ export function ExerciseMedia({
   animate = false,
   tint,
   className = '',
-  plain = false,
 }: {
   exercise: Exercise;
   animate?: boolean;
   tint?: Tint;
   className?: string;
-  /** Renders on the surrounding surface instead of its own tinted plate. */
-  plain?: boolean;
 }) {
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
-  const surface = plain ? '' : TINT_BG[tint ?? tintFor(exercise.id)];
+  const surface = TINT_ART[tint ?? tintFor(exercise.id)];
 
   return (
     <div className={`relative overflow-hidden ${surface} ${className}`}>

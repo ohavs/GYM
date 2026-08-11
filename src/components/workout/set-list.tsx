@@ -109,7 +109,7 @@ export function SetList({
           >
             <span
               className={`num grid size-9 shrink-0 place-items-center rounded-full text-[14px] font-semibold ${
-                set.done ? 'bg-ink text-white' : 'bg-canvas text-muted'
+                set.done ? 'bg-ink text-on-ink' : 'bg-canvas text-muted'
               }`}
             >
               {set.done ? <Check size={16} weight="bold" /> : index + 1}
@@ -131,7 +131,7 @@ export function SetList({
             </span>
 
             {set.done && (
-              <span className="shrink-0 text-ink/35">
+              <span className="shrink-0 text-on-tint/35">
                 <ArrowUUpLeft size={15} weight="bold" className="flip-rtl" />
               </span>
             )}

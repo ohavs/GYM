@@ -122,40 +122,40 @@ function TraineeDetail() {
       <ScreenHeader title={trainee.name} subtitle={GOAL_LABEL[trainee.goal]} back />
 
       <Rise>
-        <section className="mb-4 rounded-[var(--radius-lg)] bg-ink p-6 text-white">
+        <section className="mb-4 rounded-[var(--radius-lg)] bg-hero p-6 text-on-hero">
           <div className="flex items-center gap-4">
             <span
-              className="grid size-14 shrink-0 place-items-center rounded-[var(--radius-sm)] text-[17px] font-semibold text-white"
+              className="grid size-14 shrink-0 place-items-center rounded-[var(--radius-sm)] text-[17px] font-semibold text-on-hero"
               style={{ background: `linear-gradient(140deg, hsl(${hue} 42% 52%), hsl(${hue + 16} 40% 38%))` }}
             >
               {initials(trainee.name)}
             </span>
             <div className="min-w-0 flex-1">
-              <p className="text-[13.5px] text-white/70">
+              <p className="text-[13.5px] text-on-hero/70">
                 {LEVEL_LABEL[trainee.level]} · {PLACE_LABEL[trainee.place]}
               </p>
-              <p className="mt-1 text-[12.5px] text-white/45">
+              <p className="mt-1 text-[12.5px] text-on-hero/65">
                 הצטרף {shortDate(trainee.joinedAt)} · פעיל {relativeDay(trainee.lastActive)}
               </p>
             </div>
           </div>
 
-          <div className="mt-6 grid grid-cols-3 items-start gap-3 border-t border-white/10 pt-5 text-white">
+          <div className="mt-6 grid grid-cols-3 items-start gap-3 border-t border-on-hero/10 pt-5 text-on-hero">
             <div className="flex flex-col gap-1">
               <span className="digits text-[26px] font-semibold leading-none">
                 {trainee.done}/{trainee.planned}
               </span>
-              <span className="text-[12px] text-white/45">אימונים שבוצעו</span>
+              <span className="text-[12px] text-on-hero/65">אימונים שבוצעו</span>
             </div>
             <div className="flex flex-col gap-1">
               <span className="digits text-[26px] font-semibold leading-none">
                 {Math.round(value * 100)}%
               </span>
-              <span className="text-[12px] text-white/45">מהתוכנית</span>
+              <span className="text-[12px] text-on-hero/65">מהתוכנית</span>
             </div>
             <div className="flex flex-col gap-1">
               <span className="num text-[26px] font-semibold leading-none">{trainee.days}</span>
-              <span className="text-[12px] text-white/45">אימונים בשבוע</span>
+              <span className="text-[12px] text-on-hero/65">אימונים בשבוע</span>
             </div>
           </div>
         </section>
@@ -165,7 +165,7 @@ function TraineeDetail() {
         <section className="mb-8 rounded-[var(--radius-lg)] bg-butter p-5">
           <div className="flex items-start gap-3">
             <div className="min-w-0 flex-1">
-              <p className="text-[12.5px] font-medium text-ink/55">הערה למתאמן</p>
+              <p className="text-[12.5px] font-medium text-on-tint/72">הערה למתאמן</p>
               <p className="mt-1.5 text-[14.5px] leading-relaxed">
                 {trainee.note || 'עוד לא הוספתם הערה.'}
               </p>
@@ -422,7 +422,7 @@ function TraineeDetail() {
                     onClick={() => patchBlock(editing.dayId, editing.index, { reps })}
                     className={`h-11 rounded-full px-4.5 text-[14px] font-medium transition-colors ${
                       editingBlock.reps === reps
-                        ? 'bg-ink text-white'
+                        ? 'bg-ink text-on-ink'
                         : 'bg-card text-ink-soft shadow-[var(--shadow-soft)]'
                     }`}
                   >

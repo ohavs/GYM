@@ -94,13 +94,13 @@ export default function HomePage() {
 
       {active && (
         <Rise>
-          <div className="mb-4 flex items-center gap-4 rounded-[var(--radius-lg)] bg-ink p-4 text-white">
-            <span className="grid size-12 shrink-0 place-items-center rounded-full bg-white/12">
+          <div className="mb-4 flex items-center gap-4 rounded-[var(--radius-lg)] bg-hero p-4 text-on-hero">
+            <span className="grid size-12 shrink-0 place-items-center rounded-full bg-on-hero/12">
               <Play size={19} weight="fill" />
             </span>
             <div className="min-w-0 flex-1">
               <p className="truncate text-[16px] font-medium">{active.dayName} באוויר</p>
-              <p className="text-[13px] text-white/55">
+              <p className="text-[13px] text-on-hero/68">
                 התחלתם {relativeDay(active.startedAt)}
               </p>
             </div>
@@ -120,11 +120,11 @@ export default function HomePage() {
         <>
           <Rise>
             <div className="mb-4 flex items-center gap-4 rounded-full bg-mint p-2.5 ps-2.5 pe-5">
-              <span className="grid size-12 shrink-0 place-items-center rounded-full bg-ink text-white">
+              <span className="grid size-12 shrink-0 place-items-center rounded-full bg-ink text-on-ink">
                 <Lightning size={19} weight="fill" />
               </span>
               <div className="min-w-0 flex-1">
-                <p className="text-[12px] text-ink/55">האימון הבא שלך</p>
+                <p className="text-[12px] text-on-tint/72">האימון הבא שלך</p>
                 <p className="truncate text-[16px] font-medium">{plan.day.name}</p>
               </div>
               <IconButton
@@ -136,7 +136,7 @@ export default function HomePage() {
               >
                 {startingWorkout ? (
                   <motion.span
-                    className="block size-4 rounded-full border-2 border-white border-t-transparent"
+                    className="block size-4 rounded-full border-2 border-current border-t-transparent"
                     animate={{ rotate: 360 }}
                     transition={{ duration: 0.7, repeat: Infinity, ease: 'linear' }}
                   />
@@ -183,16 +183,17 @@ export default function HomePage() {
                         TINT_BG[TINTS[i % TINTS.length]]
                       } p-3 pe-5 text-start`}
                     >
-                      <span className="size-14 shrink-0 overflow-hidden rounded-[var(--radius-sm)] bg-white/55">
-                        <ExerciseMedia exercise={exercise} plain className="size-full" />
-                      </span>
+                      <ExerciseMedia
+                        exercise={exercise}
+                        className="size-14 shrink-0 rounded-[var(--radius-sm)] p-0.5"
+                      />
                       <span className="min-w-0 flex-1">
                         <span className="line-clamp-1 text-[15px] font-medium">{exercise.he}</span>
-                        <span className="num mt-0.5 block text-[12.5px] text-ink/55">
+                        <span className="num mt-0.5 block text-[12.5px] text-on-tint/72">
                           {block.sets} סטים · {block.reps} חזרות
                         </span>
                       </span>
-                      <CaretLeft size={16} weight="bold" className="shrink-0 text-ink/30" />
+                      <CaretLeft size={16} weight="bold" className="shrink-0 text-on-tint/30" />
                     </motion.button>
                   </motion.li>
                 );
@@ -252,7 +253,7 @@ export default function HomePage() {
               <p className="text-[14.5px] font-medium">
                 הערה מ{program.coachName ? `המאמן ${program.coachName}` : 'המאמן'}
               </p>
-              <p className="mt-1.5 text-[14px] leading-relaxed text-ink/65">{program.note}</p>
+              <p className="mt-1.5 text-[14px] leading-relaxed text-on-tint/65">{program.note}</p>
             </div>
           </div>
         </Rise>
@@ -277,15 +278,15 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="flex flex-col justify-between rounded-[var(--radius-lg)] bg-ink p-5 text-white">
-            <span className="grid size-10 place-items-center rounded-full bg-white/12">
+          <div className="flex flex-col justify-between rounded-[var(--radius-lg)] bg-hero p-5 text-on-hero">
+            <span className="grid size-10 place-items-center rounded-full bg-on-hero/12">
               <Lightning size={17} weight="fill" />
             </span>
             <div className="mt-6">
               <p className="num text-[30px] font-semibold leading-none">
                 {week.volume ? volumeLabel(week.volume) : '0'}
               </p>
-              <p className="mt-1 text-[12.5px] text-white/50">הרמתם השבוע</p>
+              <p className="mt-1 text-[12.5px] text-on-hero/68">הרמתם השבוע</p>
             </div>
           </div>
         </div>
@@ -308,7 +309,7 @@ export default function HomePage() {
                     animate={{ scale: done ? 1 : 0.88 }}
                     transition={{ type: 'spring', stiffness: 420, damping: 24 }}
                     className={`grid aspect-square w-full max-w-[40px] place-items-center rounded-[14px] ${
-                      done ? 'bg-ink text-white' : today ? 'bg-lilac' : 'bg-canvas'
+                      done ? 'bg-ink text-on-ink' : today ? 'bg-lilac' : 'bg-canvas'
                     }`}
                   >
                     {done && <Check size={14} weight="bold" />}
@@ -360,16 +361,16 @@ export default function HomePage() {
             href="/library?saved=1"
             className="flex items-center gap-4 rounded-[var(--radius-lg)] bg-sky p-5"
           >
-            <span className="grid size-11 shrink-0 place-items-center rounded-full bg-white/60">
+            <span className="grid size-11 shrink-0 place-items-center rounded-full bg-tint-well">
               <BookmarkSimple size={18} weight="fill" />
             </span>
             <span className="min-w-0 flex-1">
               <span className="block text-[15px] font-medium">התרגילים שסימנתם</span>
-              <span className="num block text-[12.5px] text-ink/55">
+              <span className="num block text-[12.5px] text-on-tint/72">
                 {saved.length} תרגילים שמורים
               </span>
             </span>
-            <ArrowRight size={18} weight="bold" className="flip-rtl shrink-0 text-ink/40" />
+            <ArrowRight size={18} weight="bold" className="flip-rtl shrink-0 text-on-tint/40" />
           </Link>
         </Rise>
       )}

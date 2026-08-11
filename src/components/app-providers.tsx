@@ -8,6 +8,7 @@ import type { User } from '@/lib/firebase';
 import { ToastProvider } from '@/components/ui/toast';
 import { NavigationProvider } from '@/components/layout/navigation';
 import { OfflineReady } from '@/components/layout/offline-ready';
+import { ThemeSync } from '@/components/layout/theme-sync';
 
 type Catalog = {
   ready: boolean;
@@ -88,6 +89,7 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
     <CatalogProvider>
       <AccountProvider>
         <ToastProvider>
+          <ThemeSync />
           <OfflineReady />
           <NavigationProvider>{children}</NavigationProvider>
         </ToastProvider>

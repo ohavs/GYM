@@ -21,6 +21,7 @@ import { Button, IconButton } from '@/components/ui/button';
 import { Field, OptionCard, Pill, Slider, Switch } from '@/components/ui/controls';
 import { Sheet } from '@/components/ui/sheet';
 import { SignInSheet } from '@/components/account/sign-in-sheet';
+import { Appearance } from '@/components/layout/appearance';
 import { useAccount, useReadyCatalog } from '@/components/app-providers';
 import { useStore } from '@/lib/store';
 import { buildProgram, GOAL_LABEL, LEVEL_LABEL, PLACE_LABEL } from '@/lib/program';
@@ -74,9 +75,9 @@ export default function ProfilePage() {
       <ScreenHeader title="הפרופיל שלי" />
 
       <Rise>
-        <section className="mb-4 rounded-[var(--radius-lg)] bg-ink p-6 text-white">
+        <section className="mb-4 rounded-[var(--radius-lg)] bg-hero p-6 text-on-hero">
           <div className="flex items-center gap-4">
-            <span className="grid size-16 shrink-0 place-items-center overflow-hidden rounded-full bg-white/12 text-[20px] font-semibold">
+            <span className="grid size-16 shrink-0 place-items-center overflow-hidden rounded-full bg-on-hero/12 text-[20px] font-semibold">
               {user?.photoURL ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={user.photoURL} alt="" className="size-full object-cover" />
@@ -86,7 +87,7 @@ export default function ProfilePage() {
             </span>
             <div className="min-w-0 flex-1">
               <h2 className="truncate text-[22px]">{profile.name || 'מתאמן'}</h2>
-              <p className="mt-1 truncate text-[13px] text-white/50">
+              <p className="mt-1 truncate text-[13px] text-on-hero/68">
                 {user?.email ?? 'מצב אורח, נשמר במכשיר הזה'}
               </p>
             </div>
@@ -94,7 +95,7 @@ export default function ProfilePage() {
               label="עריכת השם"
               tone="bare"
               size="sm"
-              className="bg-white/12 text-white"
+              className="bg-on-hero/12 text-on-hero"
               onClick={() => {
                 setDraftName(profile.name);
                 setEditing('name');
@@ -105,13 +106,13 @@ export default function ProfilePage() {
           </div>
 
           <div className="mt-5 flex flex-wrap gap-2">
-            <span className="rounded-full bg-white/12 px-3.5 py-2 text-[12.5px]">
+            <span className="rounded-full bg-on-hero/12 px-3.5 py-2 text-[12.5px]">
               {GOAL_LABEL[profile.goal]}
             </span>
-            <span className="rounded-full bg-white/12 px-3.5 py-2 text-[12.5px]">
+            <span className="rounded-full bg-on-hero/12 px-3.5 py-2 text-[12.5px]">
               {LEVEL_LABEL[profile.level]}
             </span>
-            <span className="num rounded-full bg-white/12 px-3.5 py-2 text-[12.5px]">
+            <span className="num rounded-full bg-on-hero/12 px-3.5 py-2 text-[12.5px]">
               {profile.days} בשבוע
             </span>
           </div>
@@ -124,7 +125,7 @@ export default function ProfilePage() {
             <div className={`flex items-center gap-4 rounded-[var(--radius-lg)] p-5 ${
               status === 'offline' ? 'bg-butter' : 'bg-mint'
             }`}>
-              <span className="grid size-11 shrink-0 place-items-center rounded-full bg-white/60">
+              <span className="grid size-11 shrink-0 place-items-center rounded-full bg-tint-well">
                 {status === 'offline' ? (
                   <CloudSlash size={19} weight="fill" />
                 ) : (
@@ -139,7 +140,7 @@ export default function ProfilePage() {
                       ? 'שומר...'
                       : 'מסונכרן לענן'}
                 </p>
-                <p className="text-[12.5px] text-ink/55">
+                <p className="text-[12.5px] text-on-tint/72">
                   {status === 'offline'
                     ? 'אין רשת כרגע. הכל יעלה לענן ברגע שתחזור'
                     : 'הנתונים נשמרים בחשבון שלכם'}
@@ -163,12 +164,12 @@ export default function ProfilePage() {
               onClick={() => setSignInOpen(true)}
               className="flex w-full items-center gap-4 rounded-[var(--radius-lg)] bg-peach p-5 text-start"
             >
-              <span className="grid size-11 shrink-0 place-items-center rounded-full bg-white/60">
+              <span className="grid size-11 shrink-0 place-items-center rounded-full bg-tint-well">
                 <CloudCheck size={19} weight="fill" />
               </span>
               <span className="min-w-0 flex-1">
                 <span className="block text-[15px] font-medium">שמרו את ההתקדמות</span>
-                <span className="block text-[12.5px] text-ink/55">
+                <span className="block text-[12.5px] text-on-tint/72">
                   התחברות עם גוגל, סנכרון בין מכשירים
                 </span>
               </span>
@@ -176,6 +177,11 @@ export default function ProfilePage() {
             </button>
           )}
         </section>
+      </Rise>
+
+      <Rise>
+        <SectionTitle>מראה</SectionTitle>
+        <Appearance />
       </Rise>
 
       <Rise>

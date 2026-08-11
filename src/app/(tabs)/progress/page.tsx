@@ -74,7 +74,7 @@ export default function ProgressPage() {
 
       {/* The dark card is the mockup's anchor: one big number, one calm line. */}
       <Rise>
-        <section className="mb-4 rounded-[var(--radius-lg)] bg-ink p-6 text-white">
+        <section className="mb-4 rounded-[var(--radius-lg)] bg-hero p-6 text-on-hero">
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="flex items-baseline gap-2">
@@ -83,9 +83,9 @@ export default function ProgressPage() {
                   decimals={1}
                   className="text-[40px] font-semibold leading-none"
                 />
-                <span className="text-[15px] text-white/50">טון</span>
+                <span className="text-[15px] text-on-hero/68">טון</span>
               </p>
-              <p className="mt-2 text-[13px] text-white/50">סך הכל הרמתם</p>
+              <p className="mt-2 text-[13px] text-on-hero/68">סך הכל הרמתם</p>
             </div>
             <div className="w-[128px]">
               <SegmentedDark value={range} onChange={setRange} />
@@ -94,7 +94,7 @@ export default function ProgressPage() {
 
           <VolumeChart weeks={weeks} peak={peak} />
 
-          <div className="flex justify-between text-[11px] text-white/40">
+          <div className="flex justify-between text-[11px] text-on-hero/62">
             <span>{shortDate(weeks[0].key)}</span>
             <span>השבוע</span>
           </div>
@@ -214,7 +214,7 @@ function VolumeChart({ weeks, peak }: { weeks: { key: number; volume: number }[]
             x2={w}
             y1={h * f}
             y2={h * f}
-            stroke="rgba(255,255,255,0.09)"
+            stroke="var(--on-hero)" strokeOpacity={0.09}
             strokeWidth="0.4"
             vectorEffect="non-scaling-stroke"
           />
@@ -222,7 +222,7 @@ function VolumeChart({ weeks, peak }: { weeks: { key: number; volume: number }[]
         <motion.path
           d={path}
           fill="none"
-          stroke="#ffffff"
+          stroke="var(--on-hero)"
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -236,7 +236,7 @@ function VolumeChart({ weeks, peak }: { weeks: { key: number; volume: number }[]
             cx={last.x}
             cy={last.y}
             r="4"
-            fill="#ffffff"
+            fill="var(--on-hero)"
             vectorEffect="non-scaling-stroke"
             initial={reduce ? false : { scale: 0 }}
             animate={{ scale: 1 }}
@@ -250,7 +250,7 @@ function VolumeChart({ weeks, peak }: { weeks: { key: number; volume: number }[]
 
 function SegmentedDark({ value, onChange }: { value: Range; onChange: (v: Range) => void }) {
   return (
-    <div className="grid grid-cols-2 gap-1 rounded-full bg-white/10 p-1">
+    <div className="grid grid-cols-2 gap-1 rounded-full bg-on-hero/10 p-1">
       {(['8', '16'] as Range[]).map((option) => (
         <button
           key={option}
@@ -258,7 +258,7 @@ function SegmentedDark({ value, onChange }: { value: Range; onChange: (v: Range)
           onClick={() => onChange(option)}
           aria-pressed={value === option}
           className={`h-9 rounded-full text-[12.5px] font-medium transition-colors ${
-            value === option ? 'bg-white text-ink' : 'text-white/60'
+            value === option ? 'bg-on-hero text-hero' : 'text-on-hero/72'
           }`}
         >
           {option} שב׳

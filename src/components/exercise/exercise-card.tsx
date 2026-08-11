@@ -80,7 +80,7 @@ export function ExerciseCard({
           toggleSaved(exercise.id);
         }}
         className={`absolute end-3 top-3 grid size-9 place-items-center rounded-full transition-colors ${
-          saved ? 'bg-ink text-white' : 'bg-card/85 text-ink backdrop-blur-sm'
+          saved ? 'bg-ink text-on-ink' : 'bg-card/85 text-ink backdrop-blur-sm'
         }`}
       >
         <BookmarkSimple size={15} weight={saved ? 'fill' : 'regular'} />
@@ -187,8 +187,8 @@ export function ExerciseHero({
         <div className="flex flex-wrap items-start gap-2">{pills}</div>
         <div className="flex items-end justify-between gap-3">
           <div className="min-w-0">
-            {eyebrow && <p className="text-[12px] font-medium text-ink/55">{eyebrow}</p>}
-            <p className="mt-0.5 line-clamp-2 text-[19px] font-semibold leading-tight text-ink">
+            {eyebrow && <p className="text-[12px] font-medium text-on-art/70">{eyebrow}</p>}
+            <p className="mt-0.5 line-clamp-2 text-[19px] font-semibold leading-tight text-on-art">
               {title}
             </p>
           </div>

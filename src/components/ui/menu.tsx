@@ -74,12 +74,12 @@ export function Dropdown({
         className={[
           'inline-flex h-11 max-w-[62vw] items-center gap-1.5 rounded-full px-4.5 text-[14px] font-medium',
           'transition-colors duration-150',
-          active ? 'bg-ink text-white' : 'bg-card text-ink-soft shadow-[var(--shadow-soft)]',
+          active ? 'bg-ink text-on-ink' : 'bg-card text-ink-soft shadow-[var(--shadow-soft)]',
         ].join(' ')}
       >
         <span className="truncate">{label}</span>
         {active && (
-          <span className="digits grid size-5 shrink-0 place-items-center rounded-full bg-white/20 text-[11px] font-semibold text-white">
+          <span className="digits grid size-5 shrink-0 place-items-center rounded-full bg-on-ink/20 text-[11px] font-semibold text-on-ink">
             {count}
           </span>
         )}
@@ -180,7 +180,7 @@ export function MenuItem({
           24px box away completely, so this one is set outright. */}
       <span
         className={`grid size-6 shrink-0 place-items-center rounded-[8px] transition-colors ${
-          selected ? 'bg-ink text-white' : 'border-[1.5px] border-line-strong'
+          selected ? 'bg-ink text-on-ink' : 'border-[1.5px] border-line-strong'
         }`}
       >
         {selected && <Check size={13} weight="bold" />}

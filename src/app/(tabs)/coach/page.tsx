@@ -131,7 +131,7 @@ function TraineeCard({ trainee }: { trainee: Trainee }) {
       className="flex items-center gap-4 rounded-[var(--radius-lg)] bg-card p-4 pe-5 shadow-[var(--shadow-soft)]"
     >
       <span
-        className="grid size-14 shrink-0 place-items-center rounded-[var(--radius-sm)] text-[16px] font-semibold text-white"
+        className="grid size-14 shrink-0 place-items-center rounded-[var(--radius-sm)] text-[16px] font-semibold text-on-ink"
         style={{ background: `linear-gradient(140deg, hsl(${hue} 42% 52%), hsl(${hue + 16} 40% 38%))` }}
       >
         {initials(trainee.name)}

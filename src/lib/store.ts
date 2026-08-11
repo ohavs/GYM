@@ -4,6 +4,7 @@ import { useSyncExternalStore } from 'react';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { isDemoLog, isDemoTrainee } from './demo';
+import { DEFAULT_PALETTE, type PaletteKey, type ThemeChoice } from './theme';
 import type {
   ActiveWorkout,
   Block,
@@ -37,10 +38,14 @@ type State = {
   saved: string[];
   /** How the catalogue is laid out. Remembered, since it is a lasting preference. */
   libraryView: LibraryView;
+  theme: ThemeChoice;
+  palette: PaletteKey;
   lastWeights: Record<string, number>;
 
   setProfile: (patch: Partial<Profile>) => void;
   setLibraryView: (view: LibraryView) => void;
+  setTheme: (theme: ThemeChoice) => void;
+  setPalette: (palette: PaletteKey) => void;
   setProgram: (program: Program | null) => void;
   toggleSaved: (id: string) => void;
 
@@ -90,10 +95,14 @@ export const useStore = create<State>()(
       trainees: [],
       saved: [],
       libraryView: 'grid',
+      theme: 'system',
+      palette: DEFAULT_PALETTE,
       lastWeights: {},
 
       setProfile: (patch) => set((s) => ({ profile: { ...s.profile, ...patch } })),
       setLibraryView: (libraryView) => set({ libraryView }),
+      setTheme: (theme) => set({ theme }),
+      setPalette: (palette) => set({ palette }),
       setProgram: (program) => set({ program }),
 
       toggleSaved: (id) =>
@@ -314,6 +323,8 @@ export const useStore = create<State>()(
           saved: [],
           libraryView: 'grid',
           lastWeights: {},
+          // Theme and palette survive: they are how the app looks, not data
+          // the user asked to erase.
         }),
     }),
     {
@@ -327,6 +338,8 @@ export const useStore = create<State>()(
         trainees: s.trainees,
         saved: s.saved,
         libraryView: s.libraryView,
+        theme: s.theme,
+        palette: s.palette,
         lastWeights: s.lastWeights,
       }),
     },

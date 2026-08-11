@@ -22,6 +22,19 @@ export const TINT_BG: Record<Tint, string> = {
   blush: 'bg-blush',
 };
 
+/**
+ * Plates for the exercise artwork. Same hues, but held light in dark mode —
+ * the figures are multiplied onto them and would vanish on a dark ground.
+ */
+export const TINT_ART: Record<Tint, string> = {
+  peach: 'bg-art-peach',
+  mint: 'bg-art-mint',
+  lilac: 'bg-art-lilac',
+  butter: 'bg-art-butter',
+  sky: 'bg-art-sky',
+  blush: 'bg-art-blush',
+};
+
 /** Selected state for a tinted surface: same hue, more of it. */
 export const TINT_DEEP: Record<Tint, string> = {
   peach: 'bg-peach-deep',
@@ -55,7 +68,7 @@ export function Pill({
 }) {
   const tones = {
     card: 'bg-card text-ink',
-    ink: 'bg-ink text-white',
+    ink: 'bg-ink text-on-ink',
     mint: 'bg-mint text-ink',
     peach: 'bg-peach text-ink',
     butter: 'bg-butter text-ink',
@@ -97,12 +110,12 @@ export function Chip({
       className={[
         'inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full px-4.5 text-[14px] font-medium',
         'transition-colors duration-150',
-        active ? 'bg-ink text-white' : 'bg-card text-ink-soft shadow-[var(--shadow-soft)]',
+        active ? 'bg-ink text-on-ink' : 'bg-card text-ink-soft shadow-[var(--shadow-soft)]',
       ].join(' ')}
     >
       {children}
       {count !== undefined && (
-        <span className={`digits text-[11px] ${active ? 'text-white/55' : 'text-faint'}`}>
+        <span className={`digits text-[11px] ${active ? 'text-on-ink/70' : 'text-faint'}`}>
           {count}
         </span>
       )}
@@ -155,7 +168,7 @@ export function Segmented<T extends string>({
                 className="absolute inset-0 rounded-full bg-ink"
               />
             )}
-            <span className={`relative z-10 ${active ? 'text-white' : 'text-muted'}`}>
+            <span className={`relative z-10 ${active ? 'text-on-ink' : 'text-muted'}`}>
               {option.label}
             </span>
           </button>
@@ -197,13 +210,13 @@ export function OptionCard({
       className={[
         'flex w-full items-center gap-4 rounded-[var(--radius-lg)] p-4 text-start',
         'transition-colors duration-200',
-        selected ? 'bg-ink text-white' : 'bg-card text-ink shadow-[var(--shadow-soft)]',
+        selected ? 'bg-ink text-on-ink' : 'bg-card text-ink shadow-[var(--shadow-soft)]',
       ].join(' ')}
     >
       {icon && (
         <span
           className={`grid size-13 shrink-0 place-items-center rounded-[var(--radius-sm)] ${
-            selected ? 'bg-white/12 text-white' : `${TINT_BG[tint]} text-ink`
+            selected ? 'bg-on-ink/12 text-on-ink' : `${TINT_BG[tint]} text-ink`
           }`}
         >
           {icon}
@@ -213,7 +226,7 @@ export function OptionCard({
         <span className="block truncate text-[16px] font-medium">{title}</span>
         {description && (
           <span
-            className={`mt-0.5 block truncate text-[13px] ${selected ? 'text-white/60' : 'text-muted'}`}
+            className={`mt-0.5 block truncate text-[13px] ${selected ? 'text-on-ink/72' : 'text-muted'}`}
           >
             {description}
           </span>
@@ -224,7 +237,7 @@ export function OptionCard({
         animate={{ scale: selected ? 1 : 0.8, opacity: selected ? 1 : 0.35 }}
         transition={{ type: 'spring', stiffness: 500, damping: 26 }}
         className={`grid size-7 shrink-0 place-items-center rounded-full ${
-          selected ? 'bg-white text-ink' : 'bg-canvas text-transparent'
+          selected ? 'bg-on-ink text-ink' : 'bg-canvas text-transparent'
         }`}
       >
         <Check size={14} weight="bold" />
@@ -263,7 +276,7 @@ export function Switch({
       <motion.span
         layout
         transition={{ type: 'spring', stiffness: 600, damping: 34 }}
-        className="absolute top-1 size-6 rounded-full bg-white shadow-sm"
+        className="absolute top-1 size-6 rounded-full bg-card shadow-sm"
         style={checked ? { left: 4 } : { right: 4 }}
       />
     </button>
@@ -536,7 +549,7 @@ export function Slider({
           style={{ insetInlineStart: 0, width: `${pct}%` }}
         />
         <span
-          className="pointer-events-none absolute top-1/2 size-8 -translate-y-1/2 rounded-full border-[5px] border-ink bg-white shadow-[var(--shadow-soft)]"
+          className="pointer-events-none absolute top-1/2 size-8 -translate-y-1/2 rounded-full border-[5px] border-ink bg-card shadow-[var(--shadow-soft)]"
           style={{ insetInlineStart: `calc(${pct}% - 16px)` }}
         />
         <input
@@ -572,13 +585,14 @@ export function ProgressRing({
   size?: number;
   stroke?: number;
   children?: React.ReactNode;
-  tone?: 'ink' | 'green' | 'white';
+  /** `hero` is the ring drawn inside a feature panel, on its own foreground. */
+  tone?: 'ink' | 'green' | 'hero';
 }) {
   const reduce = useReducedMotion();
   const r = (size - stroke) / 2;
   const circumference = 2 * Math.PI * r;
   const clamped = clamp(progress, 0, 1);
-  const colors = { ink: 'var(--ink)', green: 'var(--green)', white: '#ffffff' };
+  const colors = { ink: 'var(--ink)', green: 'var(--green)', hero: 'var(--on-hero)' };
 
   return (
     <div
@@ -591,7 +605,8 @@ export function ProgressRing({
           cy={size / 2}
           r={r}
           fill="none"
-          stroke={tone === 'white' ? 'rgba(255,255,255,0.22)' : 'var(--line)'}
+          stroke={tone === 'hero' ? 'var(--on-hero)' : 'var(--line)'}
+          strokeOpacity={tone === 'hero' ? 0.22 : 1}
           strokeWidth={stroke}
         />
         <motion.circle

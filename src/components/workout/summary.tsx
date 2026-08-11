@@ -151,10 +151,10 @@ function Tile({
 }) {
   return (
     <div className={`flex flex-col gap-3 rounded-[var(--radius-lg)] ${tint} px-4 py-5`}>
-      <span className="grid size-9 place-items-center rounded-full bg-white/55">{icon}</span>
+      <span className="grid size-9 place-items-center rounded-full bg-tint-well">{icon}</span>
       <div>
         <dd className="num text-[19px] font-semibold leading-tight">{value}</dd>
-        <dt className="mt-0.5 text-[12px] text-ink/55">{label}</dt>
+        <dt className="mt-0.5 text-[12px] text-on-tint/72">{label}</dt>
       </div>
     </div>
   );
