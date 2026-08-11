@@ -127,7 +127,7 @@ function TraineeCard({ trainee }: { trainee: Trainee }) {
 
   return (
     <Link
-      href={`/coach/${trainee.id}`}
+      href={`/coach/trainee?id=${trainee.id}`}
       className="flex items-center gap-4 rounded-[var(--radius-lg)] bg-card p-4 pe-5 shadow-[var(--shadow-soft)]"
     >
       <span

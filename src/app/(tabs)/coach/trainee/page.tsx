@@ -1,7 +1,7 @@
 'use client';
 
-import { use, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { AnimatePresence, Reorder, motion } from 'motion/react';
 import {
   CaretDown,
@@ -28,8 +28,21 @@ import { useToast } from '@/components/ui/toast';
 import { haptic } from '@/lib/haptics';
 import type { Block, Program } from '@/lib/types';
 
-export default function TraineePage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+/**
+ * The trainee id travels in the query string rather than the path. Ids are
+ * created at runtime, so a path segment would force this route to be rendered
+ * on a server; as a query it stays a static page the app can host anywhere.
+ */
+export default function TraineePage() {
+  return (
+    <Suspense fallback={null}>
+      <TraineeDetail />
+    </Suspense>
+  );
+}
+
+function TraineeDetail() {
+  const id = useSearchParams().get('id') ?? '';
   const router = useRouter();
   const toast = useToast();
   const { byId } = useReadyCatalog();
