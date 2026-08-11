@@ -48,13 +48,25 @@ npm run build && npm run start
 מפתחות הפרויקט יושבים ב-`.env`. הם ציבוריים בכוונה: Google מגדירה את מפתח ה-Web API
 כמזהה ולא כסוד. ההגנה מגיעה מכללי Firestore ומרשימת הדומיינים המורשים בקונסולה.
 
-לפני העלייה לאוויר:
+### מצב נוכחי בפרויקט vibe-gym-13011
 
-1. **Authentication → Settings → Authorized domains** — הוסיפו את הדומיין שלכם.
-2. **Firestore rules** — הפעילו את הכללים שבריפו:
-   ```bash
-   firebase deploy --only firestore:rules
-   ```
+| פריט | מצב |
+|---|---|
+| Firestore database | קיים, `eur3`, Native mode |
+| כללי אבטחה | פרוסים מתוך `firestore.rules` ונבדקו |
+| ספק Google | מופעל |
+| Authorized domains | `localhost`, `vibe-gym-13011.firebaseapp.com`, `vibe-gym-13011.web.app` |
+
+**מה שנשאר:** כשפורסים לדומיין אחר (Vercel וכדומה) צריך להוסיף אותו תחת
+Authentication → Settings → Authorized domains, אחרת כניסת גוגל תיכשל שם.
+
+### עדכון הכללים
+
+`firebase.json` ו-`.firebaserc` בריפו, כך שאחרי `firebase login`:
+
+```bash
+firebase deploy --only firestore:rules
+```
 
 ### למה Firestore ולא Realtime Database
 
