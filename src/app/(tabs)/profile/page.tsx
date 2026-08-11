@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import {
   ArrowCounterClockwise,
   Barbell,
+  Broom,
   CalendarBlank,
   CloudCheck,
   CloudSlash,
@@ -23,8 +24,8 @@ import { SignInSheet } from '@/components/account/sign-in-sheet';
 import { useAccount, useReadyCatalog } from '@/components/app-providers';
 import { useStore } from '@/lib/store';
 import { buildProgram, GOAL_LABEL, LEVEL_LABEL, PLACE_LABEL } from '@/lib/program';
-import { seedTrainees } from '@/lib/demo';
-import { initials } from '@/lib/format';
+import { isDemoLog, isDemoTrainee, seedTrainees } from '@/lib/demo';
+import { initials, plural } from '@/lib/format';
 import { signOut } from '@/lib/firebase';
 import { deleteRemoteData } from '@/lib/sync';
 import { useToast } from '@/components/ui/toast';
@@ -44,7 +45,14 @@ export default function ProfilePage() {
   const trainees = useStore((s) => s.trainees);
   const upsertTrainee = useStore((s) => s.upsertTrainee);
   const seedDemoHistory = useStore((s) => s.seedDemoHistory);
+  const clearDemo = useStore((s) => s.clearDemo);
   const resetAll = useStore((s) => s.resetAll);
+
+  // Split so the copy can promise what the button does: clearing samples never
+  // touches a workout the user actually finished.
+  const realLogs = logs.filter((log) => !isDemoLog(log)).length;
+  const demoCount =
+    logs.length - realLogs + trainees.filter((trainee) => isDemoTrainee(trainee)).length;
 
   const [editing, setEditing] = useState<null | 'name' | 'goal' | 'level' | 'days' | 'place'>(null);
   const [draftName, setDraftName] = useState(profile.name);
@@ -248,6 +256,30 @@ export default function ProfilePage() {
             <Database size={17} weight="bold" />
             טעינת נתוני הדגמה
           </Button>
+          {demoCount > 0 && (
+            <Button
+              variant="card"
+              size="lg"
+              block
+              onClick={() => {
+                const removed = clearDemo();
+                const parts = [
+                  removed.logs > 0 &&
+                    plural(removed.logs, 'אימון הדגמה אחד', `${removed.logs} אימוני הדגמה`),
+                  removed.trainees > 0 &&
+                    plural(removed.trainees, 'מתאמן הדגמה אחד', `${removed.trainees} מתאמני הדגמה`),
+                ].filter(Boolean);
+                toast({
+                  text: 'נתוני ההדגמה נמחקו',
+                  detail: `הוסרו ${parts.join(' ו-')}. הנתונים שלכם נשארו.`,
+                  tone: 'ok',
+                });
+              }}
+            >
+              <Broom size={17} weight="bold" />
+              מחיקת נתוני ההדגמה בלבד
+            </Button>
+          )}
           <Button variant="danger" size="lg" block onClick={() => setConfirmReset(true)}>
             <ArrowCounterClockwise size={17} weight="bold" />
             איפוס כל הנתונים
@@ -256,7 +288,10 @@ export default function ProfilePage() {
             {user
               ? 'הנתונים נשמרים בחשבון גוגל שלכם ומסונכרנים בין מכשירים.'
               : 'הנתונים נשמרים מקומית בדפדפן הזה בלבד.'}{' '}
-            {logs.length > 0 && `נרשמו עד כה ${logs.length} אימונים.`}
+            {realLogs > 0 &&
+              plural(realLogs, 'נרשם עד כה אימון אחד שלכם.', `נרשמו עד כה ${realLogs} אימונים שלכם.`)}
+            {demoCount > 0 &&
+              ` בנוסף יש כאן ${plural(demoCount, 'פריט הדגמה אחד', `${demoCount} פריטי הדגמה`)}, שאפשר למחוק בלי לגעת בשאר.`}
           </p>
         </div>
       </Rise>

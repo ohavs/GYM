@@ -26,6 +26,7 @@ import {
   useDebounced,
   type Tint,
 } from '@/components/ui/controls';
+import { Dropdown, MenuAction, MenuItem } from '@/components/ui/menu';
 import { Sheet } from '@/components/ui/sheet';
 import { ExerciseCard, ExerciseRow } from '@/components/exercise/exercise-card';
 import { ExerciseMedia } from '@/components/exercise/exercise-media';
@@ -93,10 +94,16 @@ function Library() {
   const stamps = useFilterStamps(exercises);
 
   const active = filterCount(filters);
-  // Quick chips lead with the areas people actually browse, not alphabetical order.
-  const topBodyParts = [...meta.bodyParts]
-    .filter((bp) => bp.key !== 'neck')
-    .sort((a, b) => (meta.counts.bodyPart[b.key] ?? 0) - (meta.counts.bodyPart[a.key] ?? 0));
+  // The menu leads with the areas people actually browse, not alphabetical order.
+  const topBodyParts = [...meta.bodyParts].sort(
+    (a, b) => (meta.counts.bodyPart[b.key] ?? 0) - (meta.counts.bodyPart[a.key] ?? 0),
+  );
+
+  // One pick reads better as its own name than as a category with a badge.
+  const areaLabel =
+    filters.bodyParts.length === 1
+      ? (meta.bodyParts.find((bp) => bp.key === filters.bodyParts[0])?.he ?? 'אזור בגוף')
+      : 'אזור בגוף';
 
   return (
     <Screen>
@@ -136,31 +143,46 @@ function Library() {
           </div>
         </div>
 
-        <div className="no-scrollbar -mx-5 mt-3 flex gap-2.5 overflow-x-auto px-5">
+        <div className="mt-3 flex items-center justify-between gap-2.5">
+          <Dropdown
+            title="אזור בגוף"
+            label={areaLabel}
+            count={filters.bodyParts.length}
+            onClear={() => setFilters((f) => ({ ...f, bodyParts: [] }))}
+            footer={
+              <MenuAction
+                icon={<FunnelSimple size={15} weight="bold" />}
+                onClick={() => setFiltersOpen(true)}
+              >
+                ציוד ורמת קושי
+              </MenuAction>
+            }
+          >
+            {topBodyParts.map((bp) => (
+              <MenuItem
+                key={bp.key}
+                selected={filters.bodyParts.includes(bp.key)}
+                count={meta.counts.bodyPart[bp.key]}
+                label={bp.he}
+                leading={<Stamp exercise={stamps.byBodyPart.get(bp.key)} className="size-10" />}
+                onClick={() =>
+                  setFilters((f) => ({
+                    ...f,
+                    bodyParts: f.bodyParts.includes(bp.key)
+                      ? f.bodyParts.filter((x) => x !== bp.key)
+                      : [...f.bodyParts, bp.key],
+                  }))
+                }
+              />
+            ))}
+          </Dropdown>
+
           <Chip active={onlySaved} onClick={() => setOnlySaved((v) => !v)} count={saved.length}>
             <ChipGlyph tint="sky">
               <BookmarkSimple size={16} weight={onlySaved ? 'fill' : 'bold'} />
             </ChipGlyph>
             שמורים
           </Chip>
-          {topBodyParts.map((bp) => (
-            <Chip
-              key={bp.key}
-              active={filters.bodyParts.includes(bp.key)}
-              count={meta.counts.bodyPart[bp.key]}
-              onClick={() =>
-                setFilters((f) => ({
-                  ...f,
-                  bodyParts: f.bodyParts.includes(bp.key)
-                    ? f.bodyParts.filter((x) => x !== bp.key)
-                    : [...f.bodyParts, bp.key],
-                }))
-              }
-            >
-              <ChipArt exercise={stamps.byBodyPart.get(bp.key)} />
-              {bp.he}
-            </Chip>
-          ))}
         </div>
       </div>
 
@@ -348,23 +370,23 @@ function useFilterStamps(exercises: Exercise[]) {
 }
 
 /**
- * Artwork stamp for one filter. Sized to nearly fill the chip's height, since
- * any smaller and the figure turns to mush. A rounded square rather than a
- * circle: the artwork is blended onto its tint, and a blended layer paints
- * straight through a round clip, so limbs and barbells escape the disc.
+ * Artwork stamp for one filter. Big enough that the figure still reads — any
+ * smaller and it turns to mush. A rounded square rather than a circle: the
+ * artwork is blended onto its tint, and a blended layer paints straight through
+ * a round clip, so limbs and barbells escape the disc.
  */
-function ChipArt({ exercise }: { exercise?: Exercise }) {
+function Stamp({ exercise, className = '' }: { exercise?: Exercise; className?: string }) {
   if (!exercise) return null;
   return (
     <ExerciseMedia
       exercise={exercise}
       tint={tintFor(exercise.id)}
-      className="-ms-3 size-9 shrink-0 rounded-[var(--radius-xs)] p-0.5"
+      className={`shrink-0 rounded-[var(--radius-xs)] p-0.5 ${className}`}
     />
   );
 }
 
-/** Same medallion shape as ChipArt, for filters with no artwork to show. */
+/** Same medallion shape as Stamp, for filters with no artwork to show. */
 function ChipGlyph({ tint, children }: { tint: Tint; children: React.ReactNode }) {
   return (
     <span
@@ -437,7 +459,7 @@ function FilterSheet({
               count={meta.counts.bodyPart[bp.key]}
               onClick={() => toggle('bodyParts', bp.key)}
             >
-              <ChipArt exercise={stamps.byBodyPart.get(bp.key)} />
+              <Stamp exercise={stamps.byBodyPart.get(bp.key)} className="-ms-3 size-9" />
               {bp.he}
             </Chip>
           ))}
@@ -454,7 +476,7 @@ function FilterSheet({
                 count={meta.counts.equipment[eq.key]}
                 onClick={() => toggle('equipment', eq.key)}
               >
-                <ChipArt exercise={stamps.byEquipment.get(eq.key)} />
+                <Stamp exercise={stamps.byEquipment.get(eq.key)} className="-ms-3 size-9" />
                 {eq.chip}
               </Chip>
             ))}

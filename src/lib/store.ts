@@ -3,6 +3,7 @@
 import { useSyncExternalStore } from 'react';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { isDemoLog, isDemoTrainee } from './demo';
 import type {
   ActiveWorkout,
   Block,
@@ -57,8 +58,20 @@ type State = {
   setTraineeProgram: (id: string, program: Program) => void;
 
   seedDemoHistory: (program: Program, byId: Map<string, Exercise>) => void;
+  clearDemo: () => { logs: number; trainees: number };
   resetAll: () => void;
 };
+
+/** Heaviest set per exercise, rebuilt from history rather than accumulated. */
+function heaviestByExercise(logs: WorkoutLog[]) {
+  return logs.reduce<Record<string, number>>((acc, log) => {
+    for (const entry of log.entries) {
+      const heaviest = Math.max(...entry.sets.map((st) => st.weight));
+      if (heaviest > 0) acc[entry.exerciseId] = Math.max(acc[entry.exerciseId] ?? 0, heaviest);
+    }
+    return acc;
+  }, {});
+}
 
 const startingSets = (block: Block, lastWeight: number | undefined) =>
   Array.from({ length: block.sets }, () => ({
@@ -249,6 +262,7 @@ export const useStore = create<State>()(
             );
             logs.push({
               id: `demo-${week}-${s}`,
+              demo: true,
               programId: program.id,
               dayId: pd.id,
               dayName: pd.name,
@@ -261,16 +275,33 @@ export const useStore = create<State>()(
           }
         }
 
-        set((state) => ({
-          logs: [...logs].sort((a, b) => b.startedAt - a.startedAt),
-          lastWeights: logs.reduce<Record<string, number>>((acc, log) => {
-            for (const entry of log.entries) {
-              const heaviest = Math.max(...entry.sets.map((st) => st.weight));
-              acc[entry.exerciseId] = Math.max(acc[entry.exerciseId] ?? 0, heaviest);
-            }
-            return acc;
-          }, { ...state.lastWeights }),
-        }));
+        // Real workouts are kept and merged in. Seeding used to replace the
+        // whole history, which quietly threw away anything already recorded.
+        set((state) => {
+          const merged = [...state.logs.filter((log) => !isDemoLog(log)), ...logs].sort(
+            (a, b) => b.startedAt - a.startedAt,
+          );
+          return { logs: merged, lastWeights: heaviestByExercise(merged) };
+        });
+      },
+
+      clearDemo: () => {
+        const { logs, trainees } = get();
+        const keptLogs = logs.filter((log) => !isDemoLog(log));
+        const keptTrainees = trainees.filter((trainee) => !isDemoTrainee(trainee));
+
+        // Rebuilt from what survives: every finished workout leaves a log, so
+        // dropping the samples must also drop the weights they suggested.
+        set({
+          logs: keptLogs,
+          trainees: keptTrainees,
+          lastWeights: heaviestByExercise(keptLogs),
+        });
+
+        return {
+          logs: logs.length - keptLogs.length,
+          trainees: trainees.length - keptTrainees.length,
+        };
       },
 
       resetAll: () =>

@@ -123,6 +123,8 @@ export type WorkoutLog = {
   entries: LoggedExercise[];
   volume: number;
   sets: number;
+  /** Sample data, so it can be cleared without touching real training. */
+  demo?: boolean;
 };
 
 export type ActiveWorkout = {
@@ -152,4 +154,6 @@ export type Trainee = {
   planned: number;
   note: string;
   program: Program | null;
+  /** Sample data, so it can be cleared without touching real trainees. */
+  demo?: boolean;
 };

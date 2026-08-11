@@ -1,7 +1,7 @@
 'use client';
 
 import { buildProgram } from './program';
-import type { Exercise, Meta, Trainee } from './types';
+import type { Exercise, Meta, Trainee, WorkoutLog } from './types';
 
 const DAY = 86_400_000;
 
@@ -69,10 +69,28 @@ const ROSTER: Omit<Trainee, 'program' | 'joinedAt' | 'lastActive'>[] = [
 
 const LAST_ACTIVE_DAYS = [0, 1, 6, 11, 2];
 
+/**
+ * Ids of the seed roster, kept as a fallback for rosters saved before demo
+ * records carried a flag. A trainee the coach added has a timestamped id, so
+ * the two can never collide.
+ */
+const ROSTER_IDS = new Set(ROSTER.map((person) => person.id));
+
+/** True for sample data only, never for anything the user entered. */
+export function isDemoTrainee(trainee: Trainee) {
+  return trainee.demo === true || ROSTER_IDS.has(trainee.id);
+}
+
+/** True for sample history only, never for a workout the user finished. */
+export function isDemoLog(log: WorkoutLog) {
+  return log.demo === true || log.id.startsWith('demo-');
+}
+
 export function seedTrainees(exercises: Exercise[], meta: Meta): Trainee[] {
   const now = Date.now();
   return ROSTER.map((person, i) => ({
     ...person,
+    demo: true as const,
     joinedAt: now - (40 + i * 23) * DAY,
     lastActive: now - LAST_ACTIVE_DAYS[i] * DAY,
     program: {
