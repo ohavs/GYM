@@ -38,12 +38,20 @@ type State = {
   saved: string[];
   /** How the catalogue is laid out. Remembered, since it is a lasting preference. */
   libraryView: LibraryView;
+  /**
+   * Open/closed state of collapsible panels, keyed by panel. Kept as one map
+   * rather than a field per panel: a panel is a place in the UI, and the store
+   * should not have to learn about a new one every time a screen adds a card.
+   */
+  panels: Record<string, boolean>;
   theme: ThemeChoice;
   palette: PaletteKey;
   lastWeights: Record<string, number>;
 
   setProfile: (patch: Partial<Profile>) => void;
   setLibraryView: (view: LibraryView) => void;
+  setPanel: (key: string, open: boolean) => void;
+  setPanels: (patch: Record<string, boolean>) => void;
   setTheme: (theme: ThemeChoice) => void;
   setPalette: (palette: PaletteKey) => void;
   setProgram: (program: Program | null) => void;
@@ -95,12 +103,15 @@ export const useStore = create<State>()(
       trainees: [],
       saved: [],
       libraryView: 'grid',
+      panels: {},
       theme: 'system',
       palette: DEFAULT_PALETTE,
       lastWeights: {},
 
       setProfile: (patch) => set((s) => ({ profile: { ...s.profile, ...patch } })),
       setLibraryView: (libraryView) => set({ libraryView }),
+      setPanel: (key, open) => set((s) => ({ panels: { ...s.panels, [key]: open } })),
+      setPanels: (patch) => set((s) => ({ panels: { ...s.panels, ...patch } })),
       setTheme: (theme) => set({ theme }),
       setPalette: (palette) => set({ palette }),
       setProgram: (program) => set({ program }),
@@ -322,6 +333,7 @@ export const useStore = create<State>()(
           trainees: [],
           saved: [],
           libraryView: 'grid',
+          panels: {},
           lastWeights: {},
           // Theme and palette survive: they are how the app looks, not data
           // the user asked to erase.
@@ -338,6 +350,7 @@ export const useStore = create<State>()(
         trainees: s.trainees,
         saved: s.saved,
         libraryView: s.libraryView,
+        panels: s.panels,
         theme: s.theme,
         palette: s.palette,
         lastWeights: s.lastWeights,
@@ -345,6 +358,40 @@ export const useStore = create<State>()(
     },
   ),
 );
+
+/**
+ * Remembers whether a collapsible panel is open.
+ *
+ * Reads as `useState` so a screen can adopt it by changing one line, but the
+ * answer outlives the visit: a card the user closed stays closed next time.
+ * `fallback` is only used the first time, before any choice has been made.
+ */
+export function usePanel(key: string, fallback = true) {
+  const stored = useStore((s) => s.panels[key]);
+  const setPanel = useStore((s) => s.setPanel);
+  const open = stored ?? fallback;
+  return [open, (next: boolean) => setPanel(key, next)] as const;
+}
+
+/**
+ * The same, for a group where only one member is open at a time.
+ *
+ * Stored per member rather than as "the open one", so closing everything is a
+ * state the app can remember. `initial` therefore applies only until the user
+ * has touched the group at all — after that, all-closed stays all-closed.
+ */
+export function useExclusivePanel(group: string, ids: string[], initial: string | null) {
+  const panels = useStore((s) => s.panels);
+  const setPanels = useStore((s) => s.setPanels);
+
+  const touched = ids.some((id) => `${group}:${id}` in panels);
+  const open = touched ? (ids.find((id) => panels[`${group}:${id}`]) ?? null) : initial;
+
+  const setOpen = (next: string | null) =>
+    setPanels(Object.fromEntries(ids.map((id) => [`${group}:${id}`, id === next])));
+
+  return [open, setOpen] as const;
+}
 
 /** Guards against reading persisted state during the server render. */
 export function useHydrated() {

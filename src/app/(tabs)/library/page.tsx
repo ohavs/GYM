@@ -16,6 +16,7 @@ import {
   X,
 } from '@phosphor-icons/react/dist/ssr';
 import { Rise, Screen } from '@/components/layout/screen';
+import { ThemeToggle } from '@/components/layout/theme-toggle';
 import { Button, IconButton } from '@/components/ui/button';
 import {
   Chip,
@@ -108,12 +109,15 @@ function Library() {
   return (
     <Screen>
       <Rise>
-        <header className="pt-4 pb-6">
-          <h1 className="text-[32px] leading-[1.08]">מאגר התרגילים</h1>
-          <p className="mt-2 text-[15px] text-muted">
-            <span className="font-medium text-ink">{meta.total.toLocaleString('he-IL')}</span>{' '}
-            תרגילים עם הדגמה מונפשת, שריר מטרה והוראות ביצוע.
-          </p>
+        <header className="flex items-start gap-3 pt-4 pb-6">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-[32px] leading-[1.08]">מאגר התרגילים</h1>
+            <p className="mt-2 text-[15px] text-muted">
+              <span className="font-medium text-ink">{meta.total.toLocaleString('he-IL')}</span>{' '}
+              תרגילים עם הדגמה מונפשת, שריר מטרה והוראות ביצוע.
+            </p>
+          </div>
+          <ThemeToggle />
         </header>
       </Rise>
 

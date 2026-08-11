@@ -17,7 +17,7 @@ import { Sheet } from '@/components/ui/sheet';
 import { ExerciseRow } from '@/components/exercise/exercise-card';
 import { ExerciseSheet } from '@/components/exercise/exercise-sheet';
 import { useReadyCatalog } from '@/components/app-providers';
-import { useStore } from '@/lib/store';
+import { useExclusivePanel, usePanel, useStore } from '@/lib/store';
 import {
   buildProgram,
   GOAL_LABEL,
@@ -39,10 +39,14 @@ export default function ProgramPage() {
   const setProgram = useStore((s) => s.setProgram);
   const startWorkout = useStore((s) => s.startWorkout);
 
-  const [openDay, setOpenDay] = useState<string | null>(program?.days[0]?.id ?? null);
+  const [openDay, setOpenDay] = useExclusivePanel(
+    'program:day',
+    program?.days.map((d) => d.id) ?? [],
+    program?.days[0]?.id ?? null,
+  );
   const [detail, setDetail] = useState<Exercise | null>(null);
   const [rebuildOpen, setRebuildOpen] = useState(false);
-  const [splitOpen, setSplitOpen] = useState(true);
+  const [splitOpen, setSplitOpen] = usePanel('program:split');
 
   if (!program) {
     return (
@@ -117,7 +121,7 @@ export default function ProgramPage() {
             type="button"
             onClick={() => {
               haptic('select');
-              setSplitOpen((v) => !v);
+              setSplitOpen(!splitOpen);
             }}
             aria-expanded={splitOpen}
             className="flex w-full items-start gap-3 p-6 text-start"

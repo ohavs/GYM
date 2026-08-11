@@ -8,7 +8,7 @@ import { ExerciseMedia } from './exercise-media';
 import { useReadyCatalog } from '@/components/app-providers';
 import { Pill, TINT_BG, tintFor } from '@/components/ui/controls';
 import { loadSteps } from '@/lib/data';
-import { useStore } from '@/lib/store';
+import { usePanel, useStore } from '@/lib/store';
 import { LEVEL_LABEL } from '@/lib/program';
 import type { Exercise } from '@/lib/types';
 
@@ -25,7 +25,7 @@ export function ExerciseSheet({
   const saved = useStore((s) => (exercise ? s.saved.includes(exercise.id) : false));
   const toggleSaved = useStore((s) => s.toggleSaved);
   const [steps, setSteps] = useState<string[] | null>(null);
-  const [showOriginal, setShowOriginal] = useState(false);
+  const [showOriginal, setShowOriginal] = usePanel('exercise:original', false);
 
   // Opening a different exercise resets during render, so the new exercise
   // never shows the previous one's steps for a frame.
@@ -150,7 +150,7 @@ export function ExerciseSheet({
           <section>
             <button
               type="button"
-              onClick={() => setShowOriginal((v) => !v)}
+              onClick={() => setShowOriginal(!showOriginal)}
               aria-expanded={showOriginal}
               className="flex w-full items-center justify-between gap-3 rounded-[var(--radius-md)] bg-card px-5 py-4 text-start shadow-[var(--shadow-soft)]"
             >

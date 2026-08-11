@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
 import {
   ArrowRight,
@@ -10,12 +9,12 @@ import {
   CaretLeft,
   ChatCircleText,
   Check,
-  DotsThree,
   Fire,
   Lightning,
   Play,
 } from '@phosphor-icons/react/dist/ssr';
 import { Rise, Screen } from '@/components/layout/screen';
+import { ThemeToggle } from '@/components/layout/theme-toggle';
 import { useNavigation } from '@/components/layout/navigation';
 import { Button, IconButton } from '@/components/ui/button';
 import { CountUp, Pill, ProgressRing, TINTS, TINT_BG } from '@/components/ui/controls';
@@ -32,7 +31,6 @@ import type { Exercise } from '@/lib/types';
 const WEEK_DAYS = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'];
 
 export default function HomePage() {
-  const router = useRouter();
   const nav = useNavigation();
   const { byId } = useReadyCatalog();
   const { user } = useAccount();
@@ -77,9 +75,7 @@ export default function HomePage() {
               initials(profile.name || 'מ')
             )}
           </Link>
-          <IconButton label="מאגר התרגילים" onClick={() => router.push('/library')}>
-            <DotsThree size={22} weight="bold" />
-          </IconButton>
+          <ThemeToggle />
         </header>
       </Rise>
 

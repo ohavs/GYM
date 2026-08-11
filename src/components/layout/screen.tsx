@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from 'motion/react';
 import { CaretLeft } from '@phosphor-icons/react/dist/ssr';
 import { useRouter } from 'next/navigation';
 import { IconButton } from '@/components/ui/button';
+import { ThemeToggle } from './theme-toggle';
 
 /** Children rise in sequence on entry, which is the app's one signature move. */
 export function Screen({
@@ -57,6 +58,7 @@ export function ScreenHeader({
 }: {
   title: string;
   subtitle?: string;
+  /** Extra control for the header's end. The theme switch sits beside it. */
   action?: React.ReactNode;
   back?: boolean;
 }) {
@@ -73,7 +75,10 @@ export function ScreenHeader({
         <h1 className="text-[32px] leading-[1.08]">{title}</h1>
         {subtitle && <p className="mt-2 text-[15px] text-muted">{subtitle}</p>}
       </div>
-      {action}
+      <div className="flex shrink-0 items-center gap-2.5">
+        {action}
+        <ThemeToggle />
+      </div>
     </motion.header>
   );
 }

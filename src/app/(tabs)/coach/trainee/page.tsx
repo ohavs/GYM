@@ -19,7 +19,7 @@ import { Sheet } from '@/components/ui/sheet';
 import { ExerciseMedia } from '@/components/exercise/exercise-media';
 import { ExercisePicker } from '@/components/coach/exercise-picker';
 import { useReadyCatalog } from '@/components/app-providers';
-import { useStore } from '@/lib/store';
+import { useExclusivePanel, useStore } from '@/lib/store';
 import { adherence } from '@/lib/demo';
 import { GOAL_LABEL, LEVEL_LABEL, PLACE_LABEL } from '@/lib/program';
 import { estimateMinutes } from '@/lib/session';
@@ -54,7 +54,14 @@ function TraineeDetail() {
   const setProgram = useStore((s) => s.setProgram);
   const profileName = useStore((s) => s.profile.name);
 
-  const [openDay, setOpenDay] = useState<string | null>(null);
+  // Read from the trainee directly: `program` is derived after the missing
+  // trainee guard below, and hooks cannot wait for it.
+  const days = trainee?.program?.days ?? [];
+  const [openDay, setOpenDay] = useExclusivePanel(
+    'coach:day',
+    days.map((d) => d.id),
+    days[0]?.id ?? null,
+  );
   const [pickerDay, setPickerDay] = useState<string | null>(null);
   const [editing, setEditing] = useState<{ dayId: string; index: number } | null>(null);
   const [noteOpen, setNoteOpen] = useState(false);
