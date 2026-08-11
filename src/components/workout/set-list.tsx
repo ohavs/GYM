@@ -60,7 +60,7 @@ export function SetList({
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-                className="mt-5 grid grid-cols-2 gap-3"
+                className="mt-4 flex flex-col gap-2.5"
               >
                 <Dial
                   label="משקל"
@@ -167,7 +167,12 @@ export function SetList({
   );
 }
 
-/** Labelled number control with room for a full-size stepper. */
+/**
+ * One control per row rather than two side by side: at phone width a pair of
+ * columns leaves the buttons narrower than a fingertip and pushes them past the
+ * tile's edge. The buttons are white on the tile's tinted ground, since
+ * matching the backdrop made them read as bites out of the box.
+ */
 function Dial({
   label,
   unit,
@@ -184,12 +189,20 @@ function Dial({
   max: number;
 }) {
   return (
-    <div className="flex flex-col items-center gap-2.5 rounded-[var(--radius-md)] bg-canvas py-4">
-      <span className="text-[12.5px] text-muted">
+    <div className="flex items-center justify-between gap-3 rounded-[var(--radius-md)] bg-canvas px-4 py-3">
+      <span className="text-[14px] font-medium">
         {label}
-        {unit && <span className="ms-1 text-faint">{unit}</span>}
+        {unit && <span className="ms-1 text-[12px] text-faint">{unit}</span>}
       </span>
-      <Stepper value={value} onChange={onChange} step={step} max={max} label={label} />
+      <Stepper
+        value={value}
+        onChange={onChange}
+        step={step}
+        max={max}
+        size="lg"
+        on="canvas"
+        label={label}
+      />
     </div>
   );
 }

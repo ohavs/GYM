@@ -113,7 +113,9 @@ export default function ProfilePage() {
       <Rise>
         <section className="mb-8">
           {user ? (
-            <div className="flex items-center gap-4 rounded-[var(--radius-lg)] bg-mint p-5">
+            <div className={`flex items-center gap-4 rounded-[var(--radius-lg)] p-5 ${
+              status === 'offline' ? 'bg-butter' : 'bg-mint'
+            }`}>
               <span className="grid size-11 shrink-0 place-items-center rounded-full bg-white/60">
                 {status === 'offline' ? (
                   <CloudSlash size={19} weight="fill" />
@@ -124,14 +126,14 @@ export default function ProfilePage() {
               <div className="min-w-0 flex-1">
                 <p className="text-[15px] font-medium">
                   {status === 'offline'
-                    ? 'אין חיבור כרגע'
-                    : status === 'loading'
-                      ? 'מסנכרן...'
+                    ? 'נשמר במכשיר'
+                    : status === 'loading' || status === 'saving'
+                      ? 'שומר...'
                       : 'מסונכרן לענן'}
                 </p>
                 <p className="text-[12.5px] text-ink/55">
                   {status === 'offline'
-                    ? 'העדכונים יישלחו כשהרשת תחזור'
+                    ? 'אין רשת כרגע. הכל יעלה לענן ברגע שתחזור'
                     : 'הנתונים נשמרים בחשבון שלכם'}
                 </p>
               </div>

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'motion/react';
 import {
   ArrowsClockwise,
@@ -11,6 +10,7 @@ import {
   Play,
 } from '@phosphor-icons/react/dist/ssr';
 import { Rise, Screen, ScreenHeader, SectionTitle } from '@/components/layout/screen';
+import { useNavigation } from '@/components/layout/navigation';
 import { Button, IconButton } from '@/components/ui/button';
 import { EmptyState, Pill, TINT_BG, tintFor } from '@/components/ui/controls';
 import { Sheet } from '@/components/ui/sheet';
@@ -31,7 +31,7 @@ import { haptic } from '@/lib/haptics';
 import type { Exercise } from '@/lib/types';
 
 export default function ProgramPage() {
-  const router = useRouter();
+  const nav = useNavigation();
   const toast = useToast();
   const { byId, exercises, meta } = useReadyCatalog();
   const program = useStore((s) => s.program);
@@ -249,10 +249,11 @@ export default function ProgramPage() {
                           block
                           size="lg"
                           className="mt-2"
+                          loading={nav.target === '/workout'}
                           onClick={() => {
                             haptic('heavy');
                             startWorkout(program, day.id, byId);
-                            router.push('/workout');
+                            nav.go('/workout');
                           }}
                         >
                           <Play size={17} weight="fill" />

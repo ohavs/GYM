@@ -16,6 +16,7 @@ import {
   Play,
 } from '@phosphor-icons/react/dist/ssr';
 import { Rise, Screen } from '@/components/layout/screen';
+import { useNavigation } from '@/components/layout/navigation';
 import { Button, IconButton } from '@/components/ui/button';
 import { CountUp, Pill, ProgressRing, TINTS, TINT_BG } from '@/components/ui/controls';
 import { ExerciseHero } from '@/components/exercise/exercise-card';
@@ -32,6 +33,7 @@ const WEEK_DAYS = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'];
 
 export default function HomePage() {
   const router = useRouter();
+  const nav = useNavigation();
   const { byId } = useReadyCatalog();
   const { user } = useAccount();
   const profile = useStore((s) => s.profile);
@@ -51,8 +53,10 @@ export default function HomePage() {
     if (!plan || !program) return;
     haptic('heavy');
     startWorkout(program, plan.day.id, byId);
-    router.push('/workout');
+    nav.go('/workout');
   };
+
+  const startingWorkout = nav.target === '/workout';
 
   const blocks = plan?.day.blocks.slice(0, 3) ?? [];
   const heroExercise = plan ? byId.get(plan.day.blocks[0]?.exerciseId ?? '') : undefined;
@@ -100,7 +104,12 @@ export default function HomePage() {
                 התחלתם {relativeDay(active.startedAt)}
               </p>
             </div>
-            <Button size="sm" variant="card" onClick={() => router.push('/workout')}>
+            <Button
+              size="sm"
+              variant="card"
+              loading={startingWorkout}
+              onClick={() => nav.go('/workout')}
+            >
               המשך
             </Button>
           </div>
@@ -118,8 +127,22 @@ export default function HomePage() {
                 <p className="text-[12px] text-ink/55">האימון הבא שלך</p>
                 <p className="truncate text-[16px] font-medium">{plan.day.name}</p>
               </div>
-              <IconButton label="התחלת האימון" tone="ink" size="sm" onClick={start}>
-                <ArrowRight size={17} weight="bold" className="flip-rtl" />
+              <IconButton
+                label="התחלת האימון"
+                tone="ink"
+                size="sm"
+                disabled={startingWorkout}
+                onClick={start}
+              >
+                {startingWorkout ? (
+                  <motion.span
+                    className="block size-4 rounded-full border-2 border-white border-t-transparent"
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 0.7, repeat: Infinity, ease: 'linear' }}
+                  />
+                ) : (
+                  <ArrowRight size={17} weight="bold" className="flip-rtl" />
+                )}
               </IconButton>
             </div>
           </Rise>
@@ -197,7 +220,7 @@ export default function HomePage() {
                     </>
                   }
                   action={
-                    <Button size="sm" onClick={start}>
+                    <Button size="sm" loading={startingWorkout} onClick={start}>
                       <Play size={15} weight="fill" />
                       התחילו
                     </Button>
@@ -214,7 +237,7 @@ export default function HomePage() {
             <p className="mt-2 text-[14.5px] leading-relaxed text-muted">
               נבנה תוכנית לפי המטרה, הניסיון והציוד שזמין לכם.
             </p>
-            <Button block size="lg" className="mt-5" onClick={() => router.push('/profile')}>
+            <Button block size="lg" className="mt-5" onClick={() => nav.go('/profile')}>
               בניית מסלול
             </Button>
           </div>

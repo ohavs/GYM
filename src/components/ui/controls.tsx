@@ -381,6 +381,9 @@ export function Stepper({
   min = 0,
   max = 999,
   compact = false,
+  size = 'md',
+  /** Surface the stepper sits on, so its buttons never match their backdrop. */
+  on = 'card',
   label,
 }: {
   value: number;
@@ -389,6 +392,8 @@ export function Stepper({
   min?: number;
   max?: number;
   compact?: boolean;
+  size?: 'md' | 'lg';
+  on?: 'card' | 'canvas';
   label?: string;
 }) {
   const [draft, setDraft] = useState<string | null>(null);
@@ -408,10 +413,12 @@ export function Stepper({
 
   const shown = draft ?? (Number.isInteger(value) ? String(value) : value.toFixed(1));
 
+  const big = size === 'lg';
+
   return (
     <div className={`flex items-center ${compact ? 'gap-1' : 'gap-1.5'}`}>
-      <StepButton label="הפחתה" compact={compact} onPress={() => bump(-1)} onHold={() => bump(-1)}>
-        <Minus size={compact ? 13 : 15} weight="bold" />
+      <StepButton label="הפחתה" compact={compact} big={big} on={on} onPress={() => bump(-1)} onHold={() => bump(-1)}>
+        <Minus size={compact ? 13 : 16} weight="bold" />
       </StepButton>
       <input
         type="text"
@@ -425,12 +432,12 @@ export function Stepper({
         onChange={(e) => setDraft(e.target.value.replace(/[^\d.,]/g, ''))}
         onBlur={commit}
         onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
-        className={`num rounded-xl bg-transparent text-center font-semibold text-ink outline-none focus:bg-canvas ${
-          compact ? 'w-11 text-[17px]' : 'w-16 text-[19px]'
+        className={`num rounded-xl bg-transparent text-center font-semibold text-ink outline-none ${
+          compact ? 'w-11 text-[17px]' : big ? 'w-[68px] text-[26px]' : 'w-16 text-[19px]'
         }`}
       />
-      <StepButton label="הוספה" compact={compact} onPress={() => bump(1)} onHold={() => bump(1)}>
-        <Plus size={compact ? 13 : 15} weight="bold" />
+      <StepButton label="הוספה" compact={compact} big={big} on={on} onPress={() => bump(1)} onHold={() => bump(1)}>
+        <Plus size={compact ? 13 : 16} weight="bold" />
       </StepButton>
     </div>
   );
@@ -441,12 +448,16 @@ function StepButton({
   onPress,
   onHold,
   compact,
+  big,
+  on = 'card',
   children,
 }: {
   label: string;
   onPress: () => void;
   onHold: () => void;
   compact?: boolean;
+  big?: boolean;
+  on?: 'card' | 'canvas';
   children: React.ReactNode;
 }) {
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -476,9 +487,9 @@ function StepButton({
       onPointerUp={clear}
       onPointerLeave={clear}
       onPointerCancel={clear}
-      className={`grid shrink-0 place-items-center rounded-full bg-canvas text-ink-soft ${
-        compact ? 'size-9' : 'size-11'
-      }`}
+      className={`grid shrink-0 place-items-center rounded-full text-ink-soft ${
+        on === 'canvas' ? 'bg-card shadow-[var(--shadow-soft)]' : 'bg-canvas'
+      } ${compact ? 'size-9' : 'size-11'}`}
     >
       {children}
     </motion.button>

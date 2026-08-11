@@ -34,7 +34,7 @@ type UserDoc = {
   updatedAt: number;
 };
 
-export type SyncStatus = 'guest' | 'loading' | 'synced' | 'offline';
+export type SyncStatus = 'guest' | 'loading' | 'saving' | 'synced' | 'offline';
 
 async function pull(uid: string) {
   const db = getDb();
@@ -171,36 +171,83 @@ export function useFirebaseSync() {
     };
   }, [user]);
 
-  // Write-behind: batch local edits into one round trip per idle second.
+  /**
+   * Write-behind.
+   *
+   * Local state is already durable: zustand persists to localStorage on every
+   * change, so nothing is lost by closing the app or dropping the network.
+   *
+   * Firestore's own offline layer carries the rest. A write made while offline
+   * is queued in IndexedDB, survives a reload, and is delivered when the
+   * connection returns; the promise it returns does not settle until the server
+   * acknowledges. That is what lets this distinguish "saved on the device" from
+   * "landed in the cloud" without polling anything.
+   *
+   * Bookkeeping is updated when the write is queued rather than when it is
+   * acknowledged, because Firestore guarantees delivery. Waiting for the ack
+   * would mean re-sending every log on each change for as long as the user is
+   * offline.
+   */
   useEffect(() => {
     if (!user) return;
     let timer: ReturnType<typeof setTimeout> | null = null;
+    let inFlight = 0;
+    let cancelled = false;
+
+    const flush = (state: ReturnType<typeof useStore.getState>) => {
+      const writes = [
+        pushUserDoc(user.uid, {
+          profile: state.profile,
+          program: state.program,
+          saved: state.saved,
+          lastWeights: state.lastWeights,
+          updatedAt: Date.now(),
+        }),
+        pushCollection(user.uid, 'logs', state.logs, knownLogs.current),
+        pushCollection(user.uid, 'trainees', state.trainees, knownTrainees.current),
+      ];
+
+      knownLogs.current = new Set(state.logs.map((l) => l.id));
+      knownTrainees.current = new Set(state.trainees.map((t) => t.id));
+
+      inFlight += 1;
+      if (!cancelled) setStatus(navigator.onLine ? 'saving' : 'offline');
+
+      Promise.all(writes)
+        .then(() => {
+          inFlight -= 1;
+          if (!cancelled && inFlight === 0) setStatus('synced');
+        })
+        .catch(() => {
+          inFlight -= 1;
+          if (!cancelled) setStatus('offline');
+        });
+    };
 
     const unsubscribe = useStore.subscribe((state) => {
       if (!ready.current) return;
       if (timer) clearTimeout(timer);
-      timer = setTimeout(async () => {
-        try {
-          await pushUserDoc(user.uid, {
-            profile: state.profile,
-            program: state.program,
-            saved: state.saved,
-            lastWeights: state.lastWeights,
-            updatedAt: Date.now(),
-          });
-          await pushCollection(user.uid, 'logs', state.logs, knownLogs.current);
-          await pushCollection(user.uid, 'trainees', state.trainees, knownTrainees.current);
-          knownLogs.current = new Set(state.logs.map((l) => l.id));
-          knownTrainees.current = new Set(state.trainees.map((t) => t.id));
-          setStatus('synced');
-        } catch {
-          setStatus('offline');
-        }
-      }, 900);
+      timer = setTimeout(() => flush(state), 900);
     });
 
+    // Coming back online: nudge a write so anything queued is confirmed, and
+    // report the real state rather than leaving a stale "offline" badge up.
+    const onOnline = () => {
+      if (ready.current) flush(useStore.getState());
+    };
+    const onOffline = () => {
+      if (!cancelled) setStatus('offline');
+    };
+    window.addEventListener('online', onOnline);
+    window.addEventListener('offline', onOffline);
+    // Queued so the status write lands after the effect, not inside it.
+    if (!navigator.onLine) void Promise.resolve().then(onOffline);
+
     return () => {
+      cancelled = true;
       if (timer) clearTimeout(timer);
+      window.removeEventListener('online', onOnline);
+      window.removeEventListener('offline', onOffline);
       unsubscribe();
     };
   }, [user]);

@@ -6,6 +6,8 @@ import { useFirebaseSync, type SyncStatus } from '@/lib/sync';
 import type { Exercise, Meta } from '@/lib/types';
 import type { User } from '@/lib/firebase';
 import { ToastProvider } from '@/components/ui/toast';
+import { NavigationProvider } from '@/components/layout/navigation';
+import { OfflineReady } from '@/components/layout/offline-ready';
 
 type Catalog = {
   ready: boolean;
@@ -85,7 +87,10 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
     <CatalogProvider>
       <AccountProvider>
-        <ToastProvider>{children}</ToastProvider>
+        <ToastProvider>
+          <OfflineReady />
+          <NavigationProvider>{children}</NavigationProvider>
+        </ToastProvider>
       </AccountProvider>
     </CatalogProvider>
   );

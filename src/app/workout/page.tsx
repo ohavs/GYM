@@ -14,6 +14,7 @@ import { SetList } from '@/components/workout/set-list';
 import { RestTimer, type Rest } from '@/components/workout/rest-timer';
 import { WorkoutSummary } from '@/components/workout/summary';
 import { useCatalog } from '@/components/app-providers';
+import { useNavigation } from '@/components/layout/navigation';
 import { useHydrated, useStore } from '@/lib/store';
 import { alternativesFor } from '@/lib/program';
 import { mmss } from '@/lib/format';
@@ -23,6 +24,7 @@ import type { WorkoutLog } from '@/lib/types';
 
 export default function WorkoutPage() {
   const router = useRouter();
+  const nav = useNavigation();
   const hydrated = useHydrated();
   const { ready, byId, exercises, meta } = useCatalog();
   const toast = useToast();
@@ -64,7 +66,7 @@ export default function WorkoutPage() {
   );
 
   if (!hydrated || !ready || !meta) return null;
-  if (summary) return <WorkoutSummary log={summary} onClose={() => router.replace('/')} />;
+  if (summary) return <WorkoutSummary log={summary} onClose={() => nav.go('/', { replace: true })} />;
   if (!active || !day) return null;
 
   const index = Math.min(active.index, active.entries.length - 1);
@@ -107,7 +109,7 @@ export default function WorkoutPage() {
     const log = finishWorkout();
     if (!log) {
       toast({ text: 'לא סימנתם אף סט', detail: 'האימון נסגר בלי להישמר', tone: 'warn' });
-      router.replace('/');
+      nav.go('/', { replace: true });
       return;
     }
     haptic('success');
@@ -308,10 +310,21 @@ export default function WorkoutPage() {
             >
               סיימו ושמרו
             </Button>
-            <Button block size="lg" variant="danger" onClick={() => {
-              cancelWorkout();
-              router.replace('/');
-            }}>
+            <Button
+              block
+              size="lg"
+              variant="danger"
+              loading={nav.target === '/'}
+              onClick={() => {
+                cancelWorkout();
+                toast({
+                  text: 'האימון בוטל',
+                  detail: 'לא נשמר כלום מהאימון הזה',
+                  tone: 'warn',
+                });
+                nav.go('/', { replace: true });
+              }}
+            >
               ביטול האימון
             </Button>
             <Button block variant="quiet" onClick={() => setConfirmExit(false)}>
