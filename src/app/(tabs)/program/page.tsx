@@ -12,7 +12,7 @@ import {
 import { Rise, Screen, ScreenHeader, SectionTitle } from '@/components/layout/screen';
 import { useNavigation } from '@/components/layout/navigation';
 import { Button, IconButton } from '@/components/ui/button';
-import { EmptyState, Pill, TINT_BG, tintFor } from '@/components/ui/controls';
+import { Chip, EmptyState, Pill, TINT_BG, tintFor } from '@/components/ui/controls';
 import { Sheet } from '@/components/ui/sheet';
 import { ExerciseRow } from '@/components/exercise/exercise-card';
 import { ExerciseSheet } from '@/components/exercise/exercise-sheet';
@@ -28,7 +28,7 @@ import {
 import { estimateMinutes } from '@/lib/session';
 import { useToast } from '@/components/ui/toast';
 import { haptic } from '@/lib/haptics';
-import type { Exercise } from '@/lib/types';
+import type { Exercise, Goal, Level, Place, Profile } from '@/lib/types';
 
 export default function ProgramPage() {
   const nav = useNavigation();
@@ -37,6 +37,7 @@ export default function ProgramPage() {
   const program = useStore((s) => s.program);
   const profile = useStore((s) => s.profile);
   const setProgram = useStore((s) => s.setProgram);
+  const setProfile = useStore((s) => s.setProfile);
   const startWorkout = useStore((s) => s.startWorkout);
 
   const [openDay, setOpenDay] = useExclusivePanel(
@@ -78,9 +79,12 @@ export default function ProgramPage() {
   // rather than picking whichever happened to sort first.
   const busiest = split.filter((row) => row.sets === maxSets).map((row) => row.label);
 
-  const rebuild = () => {
+  // The sheet edits a draft; committing writes it to the profile too, so the
+  // settings the user just chose are the settings the app reports everywhere.
+  const rebuild = (settings: TrainingSettings) => {
     haptic('success');
-    setProgram(buildProgram({ ...profile, exercises, meta }));
+    setProfile(settings);
+    setProgram(buildProgram({ ...profile, ...settings, exercises, meta }));
     setRebuildOpen(false);
     toast({ text: 'בנינו מסלול חדש', detail: 'ההיסטוריה שלכם נשמרה', tone: 'ok' });
   };
@@ -275,41 +279,140 @@ export default function ProgramPage() {
 
       <ExerciseSheet exercise={detail} onClose={() => setDetail(null)} />
 
-      <Sheet
+      <RebuildSheet
         open={rebuildOpen}
         onClose={() => setRebuildOpen(false)}
-        title="לבנות מסלול מחדש?"
-        subtitle="נשתמש בהגדרות הנוכחיות שלכם"
-        footer={
-          <div className="flex gap-3">
-            <Button variant="card" size="lg" className="flex-1" onClick={() => setRebuildOpen(false)}>
-              ביטול
-            </Button>
-            <Button size="lg" className="flex-1" onClick={rebuild}>
-              בנו מחדש
-            </Button>
-          </div>
-        }
-      >
-        <dl className="flex flex-col gap-2.5 py-2">
-          <SettingRow label="מטרה" value={GOAL_LABEL[profile.goal]} />
-          <SettingRow label="רמה" value={LEVEL_LABEL[profile.level]} />
-          <SettingRow label="אימונים בשבוע" value={String(profile.days)} />
-          <SettingRow label="ציוד" value={PLACE_LABEL[profile.place]} />
-        </dl>
-        <p className="px-1 pb-2 pt-2 text-[13.5px] leading-relaxed text-muted">
-          כדי לשנות את ההגדרות עברו לפרופיל. ההיסטוריה והתרגילים השמורים לא ייפגעו.
-        </p>
-      </Sheet>
+        profile={profile}
+        onApply={rebuild}
+      />
     </Screen>
   );
 }
 
-function SettingRow({ label, value }: { label: string; value: string }) {
+/** The four inputs a generated program is built from. */
+type TrainingSettings = Pick<Profile, 'goal' | 'level' | 'days' | 'place'>;
+
+const DAY_CHOICES = [2, 3, 4, 5, 6];
+
+/**
+ * Rebuild sheet.
+ *
+ * It used to list the settings and send the user to the profile to change
+ * them, which meant leaving the screen, editing, and finding the way back.
+ * The settings are the entire input to a rebuild, so they are editable right
+ * here, and building commits them to the profile as well.
+ *
+ * Edits are a draft: closing without building changes nothing, and nothing is
+ * regenerated until the button is pressed.
+ */
+function RebuildSheet({
+  open,
+  onClose,
+  profile,
+  onApply,
+}: {
+  open: boolean;
+  onClose: () => void;
+  profile: Profile;
+  onApply: (settings: TrainingSettings) => void;
+}) {
+  const [draft, setDraft] = useState<TrainingSettings>(profile);
+
+  // Each opening starts from what the profile says now. Reset during render
+  // rather than in an effect, so the sheet never paints last time's draft.
+  const [wasOpen, setWasOpen] = useState(open);
+  if (wasOpen !== open) {
+    setWasOpen(open);
+    if (open) setDraft(profile);
+  }
+
+  const changed =
+    draft.goal !== profile.goal ||
+    draft.level !== profile.level ||
+    draft.days !== profile.days ||
+    draft.place !== profile.place;
+
   return (
-    <div className="flex items-center justify-between rounded-[var(--radius-md)] bg-card px-5 py-4 shadow-[var(--shadow-soft)]">
-      <dt className="text-[14.5px] text-muted">{label}</dt>
-      <dd className="text-[14.5px] font-medium">{value}</dd>
-    </div>
+    <Sheet
+      open={open}
+      onClose={onClose}
+      title="לבנות מסלול מחדש?"
+      subtitle={changed ? 'עם ההגדרות החדשות שבחרתם' : 'אפשר לשנות כאן כל הגדרה'}
+      footer={
+        <div className="flex gap-3">
+          <Button variant="card" size="lg" className="flex-1" onClick={onClose}>
+            ביטול
+          </Button>
+          <Button size="lg" className="flex-1" onClick={() => onApply(draft)}>
+            בנו מחדש
+          </Button>
+        </div>
+      }
+    >
+      <div className="flex flex-col gap-6 py-2">
+        <Choice label="מטרה">
+          {(Object.keys(GOAL_LABEL) as Goal[]).map((goal) => (
+            <Chip
+              key={goal}
+              active={draft.goal === goal}
+              onClick={() => setDraft((d) => ({ ...d, goal }))}
+            >
+              {GOAL_LABEL[goal]}
+            </Chip>
+          ))}
+        </Choice>
+
+        <Choice label="רמת ניסיון">
+          {([1, 2, 3] as Level[]).map((level) => (
+            <Chip
+              key={level}
+              active={draft.level === level}
+              onClick={() => setDraft((d) => ({ ...d, level }))}
+            >
+              {LEVEL_LABEL[level]}
+            </Chip>
+          ))}
+        </Choice>
+
+        <Choice label="אימונים בשבוע">
+          {DAY_CHOICES.map((days) => (
+            <Chip
+              key={days}
+              active={draft.days === days}
+              onClick={() => setDraft((d) => ({ ...d, days }))}
+            >
+              <span className="digits">{days}</span>
+            </Chip>
+          ))}
+        </Choice>
+
+        <Choice label="ציוד זמין">
+          {(Object.keys(PLACE_LABEL) as Place[]).map((place) => (
+            <Chip
+              key={place}
+              active={draft.place === place}
+              onClick={() => setDraft((d) => ({ ...d, place }))}
+            >
+              {PLACE_LABEL[place]}
+            </Chip>
+          ))}
+        </Choice>
+
+        <p className="px-1 text-[13.5px] leading-relaxed text-muted">
+          {changed
+            ? 'ההגדרות יישמרו בפרופיל שלכם. ההיסטוריה והתרגילים השמורים לא ייפגעו.'
+            : 'ההיסטוריה והתרגילים השמורים לא ייפגעו.'}
+        </p>
+      </div>
+    </Sheet>
+  );
+}
+
+function Choice({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <section>
+      <h3 className="mb-2.5 px-1 text-[15px] font-medium text-muted">{label}</h3>
+      <div className="flex flex-wrap gap-2.5">{children}</div>
+    </section>
   );
 }
