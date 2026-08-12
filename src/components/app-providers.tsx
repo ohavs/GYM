@@ -7,8 +7,10 @@ import type { Exercise, Meta } from '@/lib/types';
 import type { User } from '@/lib/firebase';
 import { ToastProvider } from '@/components/ui/toast';
 import { NavigationProvider } from '@/components/layout/navigation';
+import { useLinks, type Links } from '@/lib/links';
 import { OfflineReady } from '@/components/layout/offline-ready';
 import { ThemeSync } from '@/components/layout/theme-sync';
+import { CoachProgramSync } from '@/components/coach/coach-program-sync';
 
 type Catalog = {
   ready: boolean;
@@ -32,6 +34,11 @@ const AccountContext = createContext<{ user: User | null; status: SyncStatus }>(
   user: null,
   status: 'guest',
 });
+
+const LinksContext = createContext<Links>({ ready: true, asCoach: [], asTrainee: [] });
+
+/** Every coach ↔ trainee link this account is part of, live. */
+export const useLinksContext = () => useContext(LinksContext);
 
 export const useCatalog = () => useContext(CatalogContext);
 export const useAccount = () => useContext(AccountContext);
@@ -81,7 +88,12 @@ function CatalogProvider({ children }: { children: React.ReactNode }) {
 function AccountProvider({ children }: { children: React.ReactNode }) {
   const { user, status } = useFirebaseSync();
   const value = useMemo(() => ({ user, status }), [user, status]);
-  return <AccountContext.Provider value={value}>{children}</AccountContext.Provider>;
+  const links = useLinks(user?.uid ?? null);
+  return (
+    <AccountContext.Provider value={value}>
+      <LinksContext.Provider value={links}>{children}</LinksContext.Provider>
+    </AccountContext.Provider>
+  );
 }
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
@@ -90,6 +102,7 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
       <AccountProvider>
         <ToastProvider>
           <ThemeSync />
+          <CoachProgramSync />
           <OfflineReady />
           <NavigationProvider>{children}</NavigationProvider>
         </ToastProvider>

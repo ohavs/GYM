@@ -16,6 +16,7 @@ import { Chip, EmptyState, Pill, TINT_BG, tintFor } from '@/components/ui/contro
 import { Sheet } from '@/components/ui/sheet';
 import { ExerciseRow } from '@/components/exercise/exercise-card';
 import { ExerciseSheet } from '@/components/exercise/exercise-sheet';
+import { CoachCard } from '@/components/coach/coach-card';
 import { useReadyCatalog } from '@/components/app-providers';
 import { useExclusivePanel, usePanel, useStore } from '@/lib/store';
 import {
@@ -53,6 +54,7 @@ export default function ProgramPage() {
     return (
       <Screen>
         <ScreenHeader title="המסלול שלי" />
+        <CoachCard />
         <EmptyState
           icon={<Barbell size={30} />}
           title="אין מסלול פעיל"
@@ -100,6 +102,10 @@ export default function ProgramPage() {
           </IconButton>
         }
       />
+
+      <Rise>
+        <CoachCard />
+      </Rise>
 
       {program.source === 'coach' && (
         <Rise>

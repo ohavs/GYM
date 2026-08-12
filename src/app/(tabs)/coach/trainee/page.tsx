@@ -18,12 +18,13 @@ import { EmptyState, Field, Stepper, TINT_BG, tintFor } from '@/components/ui/co
 import { Sheet } from '@/components/ui/sheet';
 import { ExerciseMedia } from '@/components/exercise/exercise-media';
 import { ExercisePicker } from '@/components/coach/exercise-picker';
-import { useReadyCatalog } from '@/components/app-providers';
+import { useLinksContext, useReadyCatalog } from '@/components/app-providers';
 import { useExclusivePanel, useStore } from '@/lib/store';
-import { adherence } from '@/lib/demo';
+import { assignProgram, endLink, setCoachNote } from '@/lib/links';
+import { adherenceOf, fromLink, fromLocal, useActivity } from '@/lib/roster';
 import { GOAL_LABEL, LEVEL_LABEL, PLACE_LABEL } from '@/lib/program';
 import { estimateMinutes } from '@/lib/session';
-import { avatarHue, initials, relativeDay, shortDate } from '@/lib/format';
+import { avatarHue, initials, relativeDay } from '@/lib/format';
 import { useToast } from '@/components/ui/toast';
 import { haptic } from '@/lib/haptics';
 import type { Block, Program } from '@/lib/types';
@@ -47,14 +48,25 @@ function TraineeDetail() {
   const toast = useToast();
   const { byId } = useReadyCatalog();
 
-  const trainee = useStore((s) => s.trainees.find((t) => t.id === id));
+  const links = useLinksContext();
+  const activity = useActivity(links);
+  const local = useStore((s) => s.trainees.find((t) => t.id === id));
   const upsertTrainee = useStore((s) => s.upsertTrainee);
   const removeTrainee = useStore((s) => s.removeTrainee);
   const setTraineeProgram = useStore((s) => s.setTraineeProgram);
   const setProgram = useStore((s) => s.setProgram);
   const profileName = useStore((s) => s.profile.name);
 
-  // Read from the trainee directly: `program` is derived after the missing
+  // The same screen serves a real, linked trainee and a sample one. Which it
+  // is only decides where an edit is written back to.
+  const link = links.asCoach.find((l) => l.id === id);
+  const trainee = link
+    ? fromLink(link, activity.get(link.traineeUid))
+    : local
+      ? fromLocal(local)
+      : undefined;
+
+  // Read from the entry directly: `program` is derived after the missing
   // trainee guard below, and hooks cannot wait for it.
   const days = trainee?.program?.days ?? [];
   const [openDay, setOpenDay] = useExclusivePanel(
@@ -83,10 +95,14 @@ function TraineeDetail() {
   }
 
   const program = trainee.program;
-  const value = adherence(trainee);
+  const value = adherenceOf(trainee);
   const hue = avatarHue(trainee.name);
+  const linked = trainee.kind === 'linked';
 
-  const updateProgram = (next: Program) => setTraineeProgram(trainee.id, next);
+  const updateProgram = (next: Program) => {
+    if (linked) void assignProgram(trainee.id, next);
+    else setTraineeProgram(trainee.id, next);
+  };
 
   const patchBlock = (dayId: string, index: number, patch: Partial<Block>) => {
     if (!program) return;
@@ -142,7 +158,8 @@ function TraineeDetail() {
                 {LEVEL_LABEL[trainee.level]} · {PLACE_LABEL[trainee.place]}
               </p>
               <p className="mt-1 text-[12.5px] text-on-hero/65">
-                הצטרף {shortDate(trainee.joinedAt)} · פעיל {relativeDay(trainee.lastActive)}
+                {linked ? 'מחובר' : 'מקומי'} ·{' '}
+                {trainee.lastActive ? `פעיל ${relativeDay(trainee.lastActive)}` : 'עוד לא התאמן'}
               </p>
             </div>
           </div>
@@ -321,7 +338,7 @@ function TraineeDetail() {
               size="lg"
               onClick={() => {
                 haptic('success');
-                upsertTrainee({ ...trainee, lastActive: Date.now() });
+                if (local) upsertTrainee({ ...local, lastActive: Date.now() });
                 toast({
                   text: 'המסלול נשלח',
                   detail: `${trainee.name} יראה את העדכון בכניסה הבאה`,
@@ -469,7 +486,8 @@ function TraineeDetail() {
             block
             size="lg"
             onClick={() => {
-              upsertTrainee({ ...trainee, note: noteDraft });
+              if (linked) void setCoachNote(trainee.id, noteDraft);
+              else if (local) upsertTrainee({ ...local, note: noteDraft });
               if (program) updateProgram({ ...program, note: noteDraft });
               setNoteOpen(false);
               toast({ text: 'ההערה נשמרה', tone: 'ok' });
@@ -506,7 +524,8 @@ function TraineeDetail() {
               size="lg"
               className="flex-1"
               onClick={() => {
-                removeTrainee(trainee.id);
+                if (linked) void endLink(trainee.id);
+                else removeTrainee(trainee.id);
                 router.replace('/coach');
               }}
             >

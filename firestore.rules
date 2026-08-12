@@ -2,21 +2,107 @@ rules_version = '2';
 
 // Deploy with:  firebase deploy --only firestore:rules
 //
-// Every document lives under users/{uid}. A signed-in account can read and
-// write only its own subtree, and nothing else in the database is reachable.
+// There is no server in this app, so these rules are the entire authorization
+// layer. Two principles hold the design together:
+//
+//   1. Nobody writes into somebody else's subtree. Anything two people share
+//      lives in a third document that both of them can see.
+//   2. Access hangs off the existence of that shared document. Deleting the
+//      link is therefore a complete revocation — there is no second place
+//      where a stale permission could survive.
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function linkId(coachUid, traineeUid) {
+      return coachUid + '_' + traineeUid;
+    }
+
+    // An active link where `coach` trains `trainee`.
+    function coaches(coachUid, traineeUid) {
+      return exists(/databases/$(database)/documents/links/$(linkId(coachUid, traineeUid)))
+        && get(/databases/$(database)/documents/links/$(linkId(coachUid, traineeUid)))
+             .data.status == 'active';
+    }
+
+    /* ---------------------------------------------------------------- */
+    /* A person's own data                                              */
+    /* ---------------------------------------------------------------- */
+
     match /users/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+      allow read, write: if signedIn() && request.auth.uid == uid;
 
+      // Training history. Readable by an active coach, and never writable by
+      // one: what happened in the gym is the trainee's own record.
       match /logs/{logId} {
-        allow read, write: if request.auth != null && request.auth.uid == uid;
+        allow read: if signedIn() && (request.auth.uid == uid || coaches(request.auth.uid, uid));
+        allow write: if signedIn() && request.auth.uid == uid;
       }
 
-      match /trainees/{traineeId} {
-        allow read, write: if request.auth != null && request.auth.uid == uid;
+      // Daily check-in: meals ticked off, body weight, sleep, a note. One
+      // document per day, same access shape as logs.
+      match /daily/{day} {
+        allow read: if signedIn() && (request.auth.uid == uid || coaches(request.auth.uid, uid));
+        allow write: if signedIn() && request.auth.uid == uid;
       }
+
+      // The coach's own roster of sample trainees, kept for the demo mode.
+      match /trainees/{traineeId} {
+        allow read, write: if signedIn() && request.auth.uid == uid;
+      }
+    }
+
+    /* ---------------------------------------------------------------- */
+    /* Joining                                                          */
+    /* ---------------------------------------------------------------- */
+
+    // The code *is* the document id, which is what makes this work without a
+    // server: a code can be looked up but the collection cannot be listed, so
+    // knowing a code is the only way to reach a coach.
+    match /invites/{code} {
+      allow get: if signedIn();
+      allow create: if signedIn() && request.resource.data.coachUid == request.auth.uid;
+      allow delete: if signedIn() && resource.data.coachUid == request.auth.uid;
+    }
+
+    /* ---------------------------------------------------------------- */
+    /* The link itself                                                  */
+    /* ---------------------------------------------------------------- */
+
+    match /links/{id} {
+      // `members` is what makes one query serve both sides: a list query is
+      // only allowed when every possible result is readable, so both roles
+      // read with where('members','array-contains', myUid).
+      allow read: if signedIn() && request.auth.uid in resource.data.members;
+
+      // Only a trainee creates a link, only for themselves, only pending, and
+      // only against an invite code that really belongs to that coach.
+      allow create: if signedIn()
+        && id == linkId(request.resource.data.coachUid, request.auth.uid)
+        && request.resource.data.traineeUid == request.auth.uid
+        && request.resource.data.status == 'pending'
+        && request.resource.data.members
+             .hasOnly([request.resource.data.coachUid, request.auth.uid])
+        && exists(/databases/$(database)/documents/invites/$(request.resource.data.inviteCode))
+        && get(/databases/$(database)/documents/invites/$(request.resource.data.inviteCode))
+             .data.coachUid == request.resource.data.coachUid;
+
+      // Either side may edit, but who they are is frozen, and approving or
+      // assigning is the coach's alone.
+      allow update: if signedIn()
+        && request.auth.uid in resource.data.members
+        && !request.resource.data.diff(resource.data).affectedKeys()
+             .hasAny(['members', 'coachUid', 'traineeUid', 'inviteCode'])
+        && (request.auth.uid == resource.data.coachUid
+            || !request.resource.data.diff(resource.data).affectedKeys()
+                 .hasAny(['status', 'program', 'menu', 'coachName', 'coachNote']));
+
+      // Both sides can end it: the coach removes a trainee, the trainee
+      // revokes a coach. Either way the reads above stop working at once.
+      allow delete: if signedIn() && request.auth.uid in resource.data.members;
     }
 
     // Anything not matched above is denied.

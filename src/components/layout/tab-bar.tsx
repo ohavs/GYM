@@ -12,9 +12,15 @@ import {
   UsersThree,
 } from '@phosphor-icons/react/dist/ssr';
 import { useStore } from '@/lib/store';
+import { useLinksContext } from '@/components/app-providers';
 import { haptic } from '@/lib/haptics';
 
-const TRAINEE_TABS = [
+/**
+ * The personal tabs are always here. Coaching used to *replace* the מסלול tab,
+ * which meant turning the workspace on took away the coach's own training —
+ * and a coach trains too. It is an extra tab now, not a different app.
+ */
+const TABS = [
   { href: '/', label: 'בית', Icon: House },
   { href: '/program', label: 'מסלול', Icon: Barbell },
   { href: '/library', label: 'תרגילים', Icon: MagnifyingGlass },
@@ -22,13 +28,7 @@ const TRAINEE_TABS = [
   { href: '/profile', label: 'פרופיל', Icon: UserCircle },
 ];
 
-const COACH_TABS = [
-  { href: '/', label: 'בית', Icon: House },
-  { href: '/coach', label: 'מתאמנים', Icon: UsersThree },
-  { href: '/library', label: 'תרגילים', Icon: MagnifyingGlass },
-  { href: '/progress', label: 'התקדמות', Icon: ChartLineUp },
-  { href: '/profile', label: 'פרופיל', Icon: UserCircle },
-];
+const COACH_TAB = { href: '/coach', label: 'מתאמנים', Icon: UsersThree };
 
 /**
  * A floating dock rather than an edge-to-edge bar: it keeps the soft canvas
@@ -37,7 +37,10 @@ const COACH_TABS = [
 export function TabBar() {
   const pathname = usePathname();
   const role = useStore((s) => s.profile.role);
-  const tabs = role === 'coach' ? COACH_TABS : TRAINEE_TABS;
+  const coaching = useLinksContext().asCoach.length > 0;
+  // Shown once there is anything to coach, whether the workspace was switched
+  // on in settings or somebody has asked to join.
+  const tabs = role === 'coach' || coaching ? [...TABS.slice(0, 2), COACH_TAB, ...TABS.slice(2)] : TABS;
 
   return (
     <nav
@@ -45,7 +48,7 @@ export function TabBar() {
       className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-4 pb-[max(env(safe-area-inset-bottom),10px)]"
     >
       <ul
-        className="pointer-events-auto mx-auto grid max-w-[440px] rounded-full bg-card p-2 shadow-[var(--shadow-dock)]"
+        className="pointer-events-auto mx-auto grid max-w-[460px] rounded-full bg-card p-2 shadow-[var(--shadow-dock)]"
         style={{
           gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))`,
           height: 'var(--dock-h)',
