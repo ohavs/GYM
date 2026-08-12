@@ -25,7 +25,7 @@ import { assignMenu, assignProgram, endLink, setCoachNote } from '@/lib/links';
 import { adherenceOf, fromLink, fromLocal, useActivity } from '@/lib/roster';
 import { GOAL_LABEL, LEVEL_LABEL, PLACE_LABEL } from '@/lib/program';
 import { estimateMinutes } from '@/lib/session';
-import { avatarHue, initials, relativeDay } from '@/lib/format';
+import { avatarHue, avatarPlate, initials, relativeDay } from '@/lib/format';
 import { useToast } from '@/components/ui/toast';
 import { haptic } from '@/lib/haptics';
 import type { Block, Program } from '@/lib/types';
@@ -150,8 +150,8 @@ function TraineeDetail() {
         <section className="mb-4 rounded-[var(--radius-lg)] bg-hero p-6 text-on-hero">
           <div className="flex items-center gap-4">
             <span
-              className="grid size-14 shrink-0 place-items-center rounded-[var(--radius-sm)] text-[17px] font-semibold text-on-hero"
-              style={{ background: `linear-gradient(140deg, hsl(${hue} 42% 52%), hsl(${hue + 16} 40% 38%))` }}
+              className="grid size-14 shrink-0 place-items-center rounded-[var(--radius-sm)] text-[17px] font-semibold text-on-art"
+              style={{ background: avatarPlate(hue) }}
             >
               {initials(trainee.name)}
             </span>

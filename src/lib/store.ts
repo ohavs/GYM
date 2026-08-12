@@ -5,6 +5,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { isDemoLog, isDemoTrainee } from './demo';
 import { DEFAULT_PALETTE, type PaletteKey, type ThemeChoice } from './theme';
+import type { Food } from './foods';
 import type { Menu } from './nutrition';
 import type {
   ActiveWorkout,
@@ -45,6 +46,14 @@ type State = {
    * should not have to learn about a new one every time a screen adds a card.
    */
   panels: Record<string, boolean>;
+  /**
+   * The menu this person wrote for themselves. A coach's menu arrives over the
+   * link and always wins while that link is active, so the two never collide:
+   * this one is what someone eats when nobody is writing it for them.
+   */
+  menu: Menu | null;
+  /** Foods this person added, sitting in front of the ones the app ships with. */
+  foods: Food[];
   theme: ThemeChoice;
   palette: PaletteKey;
   lastWeights: Record<string, number>;
@@ -56,6 +65,9 @@ type State = {
   setTheme: (theme: ThemeChoice) => void;
   setPalette: (palette: PaletteKey) => void;
   setProgram: (program: Program | null) => void;
+  setMenu: (menu: Menu | null) => void;
+  addFood: (food: Food) => void;
+  removeFood: (id: string) => void;
   toggleSaved: (id: string) => void;
 
   startWorkout: (program: Program, dayId: string, byId: Map<string, Exercise>) => void;
@@ -106,6 +118,8 @@ export const useStore = create<State>()(
       saved: [],
       libraryView: 'grid',
       panels: {},
+      menu: null,
+      foods: [],
       theme: 'system',
       palette: DEFAULT_PALETTE,
       lastWeights: {},
@@ -117,6 +131,16 @@ export const useStore = create<State>()(
       setTheme: (theme) => set({ theme }),
       setPalette: (palette) => set({ palette }),
       setProgram: (program) => set({ program }),
+      setMenu: (menu) => set({ menu }),
+
+      // Newest first, and never the same food twice under a different id.
+      addFood: (food) =>
+        set((s) => ({
+          foods: s.foods.some((f) => f.name === food.name)
+            ? s.foods
+            : [{ ...food, custom: true }, ...s.foods],
+        })),
+      removeFood: (id) => set((s) => ({ foods: s.foods.filter((f) => f.id !== id) })),
 
       toggleSaved: (id) =>
         set((s) => ({
@@ -341,6 +365,8 @@ export const useStore = create<State>()(
           saved: [],
           libraryView: 'grid',
           panels: {},
+          menu: null,
+          foods: [],
           lastWeights: {},
           // Theme and palette survive: they are how the app looks, not data
           // the user asked to erase.
@@ -358,6 +384,8 @@ export const useStore = create<State>()(
         saved: s.saved,
         libraryView: s.libraryView,
         panels: s.panels,
+        menu: s.menu,
+        foods: s.foods,
         theme: s.theme,
         palette: s.palette,
         lastWeights: s.lastWeights,

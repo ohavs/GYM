@@ -88,6 +88,21 @@ export function avatarHue(seed: string) {
   return 8 + (h % 52);
 }
 
+/**
+ * The plate an avatar's initials sit on.
+ *
+ * Fixed rather than themed, and pale rather than saturated. It used to be a
+ * mid-tone gradient written on with `on-ink` — a colour that inverts with the
+ * theme while the gradient underneath it does not, so the initials fell to
+ * about 2.5:1 in light mode. A pale plate carrying `on-art` follows the rule
+ * the artwork plates already use: light in both themes, dark ink on top, the
+ * same reading either way. It also sits legibly on the dark hero panel, which
+ * a deepened gradient would not.
+ */
+export function avatarPlate(hue: number) {
+  return `linear-gradient(140deg, hsl(${hue} 62% 88%), hsl(${hue + 16} 56% 78%))`;
+}
+
 export function plural(n: number, one: string, many: string) {
   return n === 1 ? one : many;
 }

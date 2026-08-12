@@ -24,7 +24,7 @@ import { seedTrainees } from '@/lib/demo';
 import { approveLink, endLink } from '@/lib/links';
 import { adherenceOf, adherenceTone, fromLink, fromLocal, useActivity, type RosterEntry } from '@/lib/roster';
 import { buildProgram, GOAL_LABEL, LEVEL_LABEL, PLACE_LABEL } from '@/lib/program';
-import { avatarHue, initials, relativeDay } from '@/lib/format';
+import { avatarHue, avatarPlate, initials, relativeDay } from '@/lib/format';
 import { useToast } from '@/components/ui/toast';
 import { haptic } from '@/lib/haptics';
 import type { Goal, Level, Place } from '@/lib/types';
@@ -211,8 +211,8 @@ function PendingCard({
   return (
     <div className="flex items-center gap-3.5 rounded-[var(--radius-lg)] bg-butter p-4">
       <span
-        className="grid size-12 shrink-0 place-items-center rounded-[var(--radius-sm)] text-[15px] font-semibold text-on-ink"
-        style={{ background: `linear-gradient(140deg, hsl(${hue} 42% 52%), hsl(${hue + 16} 40% 38%))` }}
+        className="grid size-12 shrink-0 place-items-center rounded-[var(--radius-sm)] text-[15px] font-semibold text-on-art"
+        style={{ background: avatarPlate(hue) }}
       >
         {initials(name)}
       </span>
@@ -245,8 +245,8 @@ function TraineeCard({ entry }: { entry: RosterEntry }) {
       className="flex items-center gap-4 rounded-[var(--radius-lg)] bg-card p-4 pe-5 shadow-[var(--shadow-soft)]"
     >
       <span
-        className="relative grid size-14 shrink-0 place-items-center rounded-[var(--radius-sm)] text-[16px] font-semibold text-on-ink"
-        style={{ background: `linear-gradient(140deg, hsl(${hue} 42% 52%), hsl(${hue + 16} 40% 38%))` }}
+        className="relative grid size-14 shrink-0 place-items-center rounded-[var(--radius-sm)] text-[16px] font-semibold text-on-art"
+        style={{ background: avatarPlate(hue) }}
       >
         {initials(entry.name)}
         {entry.kind === 'linked' && (

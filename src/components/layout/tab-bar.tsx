@@ -41,18 +41,20 @@ export function TabBar() {
   const role = useStore((s) => s.profile.role);
   const links = useLinksContext();
   const coaching = links.asCoach.length > 0;
-  // A menu tab only once a coach has actually written one: this is not a food
-  // diary the app asks people to keep, it is the other half of a coach's plan.
-  const eating = links.asTrainee.some((l) => l.status === 'active' && l.menu);
 
-  // Shown once there is anything to coach, whether the workspace was switched
-  // on in settings or somebody has asked to join.
+  // The menu tab used to wait for a coach to write one, back when a menu could
+  // only come from a coach. Now that anyone can write their own, hiding the tab
+  // would hide the only way to reach it.
   const tabs = [
     ...TABS.slice(0, 2),
-    ...(eating ? [MENU_TAB] : []),
+    MENU_TAB,
     ...(role === 'coach' || coaching ? [COACH_TAB] : []),
     ...TABS.slice(2),
   ];
+
+  // At seven the cells are narrower than the caption, which then spills past
+  // the pill it belongs to. The icons carry it alone at that width.
+  const roomForLabels = tabs.length < 7;
 
   return (
     <nav
@@ -90,7 +92,7 @@ export function TabBar() {
                     weight={active ? 'fill' : 'regular'}
                     className={active ? 'text-on-ink' : 'text-faint'}
                   />
-                  {active && (
+                  {active && roomForLabels && (
                     <motion.span
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}

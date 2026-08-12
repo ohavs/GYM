@@ -1,10 +1,12 @@
 'use client';
 
-
+import { useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { CaretDown, Clock, ForkKnife, Plus, Trash, X } from '@phosphor-icons/react/dist/ssr';
+import { CaretDown, ForkKnife, Plus, Trash, X } from '@phosphor-icons/react/dist/ssr';
 import { Button, IconButton } from '@/components/ui/button';
 import { TINT_BG, tintFor } from '@/components/ui/controls';
+import { TimePicker } from '@/components/ui/time-picker';
+import { FoodPicker, FoodPickerButton } from '@/components/nutrition/food-picker';
 import { useExclusivePanel } from '@/lib/store';
 import {
   dayTotals,
@@ -15,14 +17,17 @@ import {
   type MealItem,
   type Menu,
 } from '@/lib/nutrition';
+import { plural } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 
 /**
- * The coach's menu builder.
+ * The menu builder, used by a coach for a trainee and by a person for
+ * themselves.
  *
- * Everything is free text on purpose — see the note in lib/nutrition. The
- * shape deliberately mirrors the program editor (day → meal → item, against
- * day → block → exercise) so the two halves of a coach's work feel like one
+ * An item can be picked from the food list or simply typed — the list is a
+ * shortcut, never a gate, so anything a person actually eats can be written
+ * down. The shape deliberately mirrors the program editor (day → meal → item,
+ * against day → block → exercise) so the two halves of the app feel like one
  * tool rather than two.
  */
 export function MenuEditor({
@@ -154,6 +159,7 @@ function MealCard({
         type="button"
         onClick={onToggle}
         aria-expanded={open}
+        data-meal-head
         className="flex w-full items-center gap-4 p-4 text-start"
       >
         <span
@@ -165,7 +171,7 @@ function MealCard({
           <span className="block truncate text-[16px] font-medium">{meal.name}</span>
           <span className="num mt-0.5 block text-[12.5px] text-muted">
             {meal.time && <>{meal.time} · </>}
-            {filled ? `${filled} פריטים` : 'ריק'}
+            {filled ? `${filled} ${plural(filled, 'פריט', 'פריטים')}` : 'ריק'}
             {totals.kcal > 0 && <> · {totals.kcal} קל׳</>}
           </span>
         </span>
@@ -183,57 +189,28 @@ function MealCard({
             transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
             className="overflow-hidden"
           >
-            <div className="flex flex-col gap-4 border-t border-line p-4">
-              <div className="flex gap-3">
+            <div className="flex flex-col gap-4 border-t border-line bg-canvas/40 p-4">
+              <div className="flex gap-2.5">
                 <input
                   value={meal.name}
                   onChange={(e) => onChange({ name: e.target.value })}
                   aria-label="שם הארוחה"
-                  className="min-w-0 flex-1 rounded-[var(--radius-sm)] bg-canvas px-4 py-3 text-[15px] font-medium outline-none"
+                  className="h-13 min-w-0 flex-1 rounded-[var(--radius-sm)] bg-canvas px-4 text-[15px] font-medium outline-none"
                 />
-                <div className="flex items-center gap-2 rounded-[var(--radius-sm)] bg-canvas px-3">
-                  <Clock size={15} weight="bold" className="shrink-0 text-faint" />
-                  <input
-                    value={meal.time ?? ''}
-                    onChange={(e) => onChange({ time: e.target.value })}
-                    placeholder="07:30"
-                    aria-label="שעה"
-                    className="num w-14 bg-transparent text-[14px] outline-none placeholder:text-faint"
-                  />
-                </div>
+                <TimePicker value={meal.time} onChange={(time) => onChange({ time })} />
               </div>
 
-              <ul className="flex flex-col gap-2">
+              <ul className="flex flex-col gap-2.5">
                 {meal.items.map((item) => (
-                  <li key={item.id} className="flex items-center gap-2">
-                    <input
-                      value={item.text}
-                      onChange={(e) => patchItem(item.id, { text: e.target.value })}
-                      placeholder="למשל 3 ביצים + פרוסת לחם מלא"
-                      aria-label="פריט בארוחה"
-                      className="min-w-0 flex-1 rounded-[var(--radius-sm)] bg-canvas px-4 py-3 text-[14.5px] outline-none placeholder:text-faint"
-                    />
-                    <input
-                      value={item.kcal ?? ''}
-                      onChange={(e) =>
-                        patchItem(item.id, { kcal: Number(e.target.value) || undefined })
-                      }
-                      inputMode="numeric"
-                      placeholder="קל׳"
-                      aria-label="קלוריות"
-                      className="num w-16 shrink-0 rounded-[var(--radius-sm)] bg-canvas px-2 py-3 text-center text-[14px] outline-none placeholder:text-faint"
-                    />
-                    <IconButton
-                      label="הסרת הפריט"
-                      size="sm"
-                      tone="bare"
-                      onClick={() => {
+                  <li key={item.id}>
+                    <ItemCard
+                      item={item}
+                      onChange={(patch) => patchItem(item.id, patch)}
+                      onRemove={() => {
                         haptic('tap');
                         onChange({ items: meal.items.filter((i) => i.id !== item.id) });
                       }}
-                    >
-                      <X size={15} weight="bold" />
-                    </IconButton>
+                    />
                   </li>
                 ))}
               </ul>
@@ -245,7 +222,7 @@ function MealCard({
                     haptic('tap');
                     onChange({ items: [...meal.items, newItem()] });
                   }}
-                  className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-full bg-canvas text-[14px] font-medium text-ink-soft"
+                  className="flex h-12 flex-1 items-center justify-center gap-1.5 rounded-full bg-card text-[14px] font-medium text-ink-soft shadow-[var(--shadow-soft)]"
                 >
                   <Plus size={15} weight="bold" />
                   פריט
@@ -258,6 +235,110 @@ function MealCard({
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+/**
+ * One line of a meal, on a card of its own.
+ *
+ * Everything used to share a single row, which left the food — the one field
+ * that holds a sentence — squeezed into a third of the screen. The name now
+ * takes the full width and the numbers sit underneath it, where the row is
+ * theirs to fill.
+ */
+function ItemCard({
+  item,
+  onChange,
+  onRemove,
+}: {
+  item: MealItem;
+  onChange: (patch: Partial<MealItem>) => void;
+  onRemove: () => void;
+}) {
+  const [picking, setPicking] = useState(false);
+
+  return (
+    <div className="rounded-[var(--radius-md)] bg-card p-3 shadow-[var(--shadow-soft)]">
+      <div className="flex gap-2.5">
+        <input
+          value={item.text}
+          onChange={(e) => onChange({ text: e.target.value })}
+          placeholder="מה אוכלים?"
+          aria-label="פריט בארוחה"
+          className="h-13 min-w-0 flex-1 rounded-[var(--radius-sm)] bg-canvas px-4 text-[14.5px] outline-none placeholder:text-faint"
+        />
+        <FoodPickerButton
+          open={picking}
+          onClick={() => {
+            haptic('select');
+            setPicking((v) => !v);
+          }}
+        />
+      </div>
+
+      <div className="mt-2.5 flex items-center gap-2.5">
+        <NumberField
+          value={item.kcal}
+          onChange={(kcal) => onChange({ kcal })}
+          label="קלוריות"
+          unit="קל׳"
+          max={4}
+        />
+        {/* Protein was already being filled in by the food list and shown in
+            the day's totals, with nowhere to see or correct it. */}
+        <NumberField
+          value={item.protein}
+          onChange={(protein) => onChange({ protein })}
+          label="חלבון בגרמים"
+          unit="חלבון"
+          max={3}
+        />
+        <IconButton label="הסרת הפריט" size="sm" tone="bare" onClick={onRemove}>
+          <X size={15} weight="bold" />
+        </IconButton>
+      </div>
+
+      <FoodPicker
+        open={picking}
+        onOpenChange={setPicking}
+        draftText={item.text}
+        onPick={(food) => onChange({ text: food.text, kcal: food.kcal, protein: food.protein })}
+      />
+    </div>
+  );
+}
+
+/** A figure and the unit it is in. Digits only, so it can only hold a number. */
+function NumberField({
+  value,
+  onChange,
+  label,
+  unit,
+  max,
+}: {
+  value?: number;
+  onChange: (value: number | undefined) => void;
+  label: string;
+  unit: string;
+  max: number;
+}) {
+  return (
+    <div className="flex h-12 min-w-0 flex-1 items-center gap-1.5 rounded-[var(--radius-sm)] bg-canvas px-3.5">
+      <input
+        value={value ?? ''}
+        // Stripping what cannot belong is friendlier than rejecting the
+        // keystroke: nothing flashes, the field simply holds a number.
+        onChange={(e) => {
+          const digits = e.target.value.replace(/\D/g, '').slice(0, max);
+          onChange(digits ? Number(digits) : undefined);
+        }}
+        inputMode="numeric"
+        placeholder="—"
+        aria-label={label}
+        className="num w-9 min-w-0 flex-1 bg-transparent text-[15px] font-medium outline-none placeholder:text-faint"
+      />
+      <span className="shrink-0 text-[12px] text-muted">{unit}</span>
     </div>
   );
 }
