@@ -13,6 +13,7 @@ import {
   where,
 } from 'firebase/firestore';
 import { getDb } from './firebase';
+import type { Menu } from './nutrition';
 import type { Goal, Level, Place, Program } from './types';
 
 /**
@@ -45,6 +46,7 @@ export type CoachLink = {
   traineePlace: Place;
 
   program: Program | null;
+  menu: Menu | null;
   createdAt: number;
   updatedAt: number;
 };
@@ -142,6 +144,7 @@ export async function requestLink(invite: Invite, traineeUid: string, card: Trai
     coachNote: '',
     ...card,
     program: null,
+    menu: null,
     createdAt: now,
     updatedAt: now,
   });
@@ -163,6 +166,12 @@ export async function assignProgram(id: string, program: Program | null) {
   const db = getDb();
   if (!db) return;
   await updateDoc(doc(db, 'links', id), { program, updatedAt: Date.now() });
+}
+
+export async function assignMenu(id: string, menu: Menu | null) {
+  const db = getDb();
+  if (!db) return;
+  await updateDoc(doc(db, 'links', id), { menu, updatedAt: Date.now() });
 }
 
 export async function setCoachNote(id: string, coachNote: string) {

@@ -1,3 +1,5 @@
+import type { Menu } from './nutrition';
+
 export type BodyPartKey =
   | 'back'
   | 'cardio'
@@ -154,6 +156,11 @@ export type Trainee = {
   planned: number;
   note: string;
   program: Program | null;
+  /**
+   * Nutrition, for a trainee kept on this device. A linked trainee's menu
+   * lives on the link instead, where both sides can see it.
+   */
+  menu?: Menu | null;
   /** Sample data, so it can be cleared without touching real trainees. */
   demo?: boolean;
 };

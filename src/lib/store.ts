@@ -5,6 +5,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { isDemoLog, isDemoTrainee } from './demo';
 import { DEFAULT_PALETTE, type PaletteKey, type ThemeChoice } from './theme';
+import type { Menu } from './nutrition';
 import type {
   ActiveWorkout,
   Block,
@@ -69,6 +70,7 @@ type State = {
   upsertTrainee: (trainee: Trainee) => void;
   removeTrainee: (id: string) => void;
   setTraineeProgram: (id: string, program: Program) => void;
+  setTraineeMenu: (id: string, menu: Menu | null) => void;
 
   seedDemoHistory: (program: Program, byId: Map<string, Exercise>) => void;
   clearDemo: () => { logs: number; trainees: number };
@@ -249,6 +251,11 @@ export const useStore = create<State>()(
       setTraineeProgram: (id, program) =>
         set((s) => ({
           trainees: s.trainees.map((t) => (t.id === id ? { ...t, program } : t)),
+        })),
+
+      setTraineeMenu: (id, menu) =>
+        set((s) => ({
+          trainees: s.trainees.map((t) => (t.id === id ? { ...t, menu } : t)),
         })),
 
       seedDemoHistory: (program, byId) => {

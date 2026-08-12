@@ -6,6 +6,7 @@ import { motion } from 'motion/react';
 import {
   Barbell,
   ChartLineUp,
+  ForkKnife,
   House,
   MagnifyingGlass,
   UserCircle,
@@ -29,6 +30,7 @@ const TABS = [
 ];
 
 const COACH_TAB = { href: '/coach', label: 'מתאמנים', Icon: UsersThree };
+const MENU_TAB = { href: '/nutrition', label: 'תפריט', Icon: ForkKnife };
 
 /**
  * A floating dock rather than an edge-to-edge bar: it keeps the soft canvas
@@ -37,10 +39,20 @@ const COACH_TAB = { href: '/coach', label: 'מתאמנים', Icon: UsersThree };
 export function TabBar() {
   const pathname = usePathname();
   const role = useStore((s) => s.profile.role);
-  const coaching = useLinksContext().asCoach.length > 0;
+  const links = useLinksContext();
+  const coaching = links.asCoach.length > 0;
+  // A menu tab only once a coach has actually written one: this is not a food
+  // diary the app asks people to keep, it is the other half of a coach's plan.
+  const eating = links.asTrainee.some((l) => l.status === 'active' && l.menu);
+
   // Shown once there is anything to coach, whether the workspace was switched
   // on in settings or somebody has asked to join.
-  const tabs = role === 'coach' || coaching ? [...TABS.slice(0, 2), COACH_TAB, ...TABS.slice(2)] : TABS;
+  const tabs = [
+    ...TABS.slice(0, 2),
+    ...(eating ? [MENU_TAB] : []),
+    ...(role === 'coach' || coaching ? [COACH_TAB] : []),
+    ...TABS.slice(2),
+  ];
 
   return (
     <nav

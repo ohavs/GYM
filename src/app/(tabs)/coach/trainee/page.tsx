@@ -18,9 +18,10 @@ import { EmptyState, Field, Stepper, TINT_BG, tintFor } from '@/components/ui/co
 import { Sheet } from '@/components/ui/sheet';
 import { ExerciseMedia } from '@/components/exercise/exercise-media';
 import { ExercisePicker } from '@/components/coach/exercise-picker';
+import { MenuSection } from '@/components/coach/menu-section';
 import { useLinksContext, useReadyCatalog } from '@/components/app-providers';
 import { useExclusivePanel, useStore } from '@/lib/store';
-import { assignProgram, endLink, setCoachNote } from '@/lib/links';
+import { assignMenu, assignProgram, endLink, setCoachNote } from '@/lib/links';
 import { adherenceOf, fromLink, fromLocal, useActivity } from '@/lib/roster';
 import { GOAL_LABEL, LEVEL_LABEL, PLACE_LABEL } from '@/lib/program';
 import { estimateMinutes } from '@/lib/session';
@@ -54,6 +55,7 @@ function TraineeDetail() {
   const upsertTrainee = useStore((s) => s.upsertTrainee);
   const removeTrainee = useStore((s) => s.removeTrainee);
   const setTraineeProgram = useStore((s) => s.setTraineeProgram);
+  const setTraineeMenu = useStore((s) => s.setTraineeMenu);
   const setProgram = useStore((s) => s.setProgram);
   const profileName = useStore((s) => s.profile.name);
 
@@ -206,6 +208,19 @@ function TraineeDetail() {
             </IconButton>
           </div>
         </section>
+      </Rise>
+
+      {/* Nutrition sits above the program editor: it is the newer half of the
+          coach's work and the one that needs finding. */}
+      <Rise>
+        <MenuSection
+          traineeUid={trainee.traineeUid}
+          menu={trainee.menu}
+          onSave={(next) =>
+            linked ? assignMenu(trainee.id, next) : setTraineeMenu(trainee.id, next)
+          }
+          onRemove={() => (linked ? assignMenu(trainee.id, null) : setTraineeMenu(trainee.id, null))}
+        />
       </Rise>
 
       {program ? (

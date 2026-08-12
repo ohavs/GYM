@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { getDb } from './firebase';
 import type { CoachLink, LinkStatus, Links } from './links';
+import type { Menu } from './nutrition';
 import type { Goal, Level, Place, Program, Trainee, WorkoutLog } from './types';
 
 /**
@@ -25,6 +26,7 @@ export type RosterEntry = {
   place: Place;
   note: string;
   program: Program | null;
+  menu: Menu | null;
   /** Sessions done in the last four weeks, and what the plan asked for. */
   done: number;
   planned: number;
@@ -49,6 +51,7 @@ export function fromLink(link: CoachLink, activity?: Activity): RosterEntry {
     place: link.traineePlace,
     note: link.coachNote,
     program: link.program,
+    menu: link.menu ?? null,
     done: activity?.done ?? 0,
     planned,
     lastActive: activity?.lastActive ?? link.updatedAt,
@@ -68,6 +71,7 @@ export function fromLocal(trainee: Trainee): RosterEntry {
     place: trainee.place,
     note: trainee.note,
     program: trainee.program,
+    menu: trainee.menu ?? null,
     done: trainee.done,
     planned: trainee.planned,
     lastActive: trainee.lastActive,
